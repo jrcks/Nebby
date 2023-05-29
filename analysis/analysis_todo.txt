@@ -1,0 +1,9 @@
+This document is to keep a list of all the questions we 
+want answered from the analysis of semantics of flows:
+
+Table for this :
+1. What HTTP version used?
+2. What data sent over it?
+3. How much data sent over it?
+
+

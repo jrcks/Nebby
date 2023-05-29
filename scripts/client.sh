@@ -15,7 +15,14 @@ echo "Launching client..."
 
 
 #launch the desired client below:
+name=$1
+cd ..
+cd selenium/chrome
 
-python3 ../selenium/twitchvideo.py
+python3 spotify.py $name
+
+cd ..
+cd ..
+
 echo "DONE!"
 #sudo killall iperf wget
