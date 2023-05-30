@@ -49,8 +49,17 @@ for key in flows.keys():
 print()
 
 sum_file = path+"results/"+file+".json"
-print("Port wise summary saved at " + sum_file )
+print("Port wise data saved at " + sum_file)
 port_rq_sum_mp = get_port_rq_summary(port_rq_dict,cid_port_mp,cid_groupid_mp, flows)
 with open(sum_file, "+w") as f :
     json.dump(port_rq_sum_mp,f)
+print()
+print("#############################################")
+print("Summary of each port")
+txt_file = open(path+"results/"+file+".txt", "+w")
+version_data = print_port_http_size_type(port_rq_sum_mp, txt_file)
+print("This data is saved at ", path+"results/"+file+".txt")
+plt_path = path+"results/"+file+".png"
+get_http_chart(version_data, plt_path)
+print("Chart Saved at ", plt_path)
 

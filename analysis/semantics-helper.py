@@ -1,4 +1,7 @@
 from datetime import datetime 
+import textwrap
+from pprint import pprint
+import matplotlib.pyplot as plt
 
 def get_request_list(entries):
     request_list = []
@@ -182,4 +185,85 @@ def get_port_rq_summary(port_rq_dict,cid_port_mp,cid_groupid_mp, flows):
             port_rq_sum_mp[port]['domain'] = cid_groupid_mp[cid]
             port_rq_sum_mp[port]['nebbySize'] = int(flows[str(port)]['last_ack'])/1000
     return port_rq_sum_mp
+
+
+def get_http(https):
+    https_set = set()
+    for http in https:
+        http_l = http.lower()
+        https_set.add(http_l)
+    https_list = list(https_set)
+    return https_list
+
+def next_line(f):
+    f.write("\n")
+def print_port_http_size_type(port_rq_sum_mp, f):
+    different_port = []
+    version_data = {}
+    f.write("{:8} {:20} {:20} {:10}".format("Port","HTTP Version","Size","Content Type"))
+    next_line(f)
+    print("{:8} {:20} {:20} {:10}".format("Port","HTTP Version","Size","Content Type"))
+    line_length = 100
+    for port in port_rq_sum_mp :
+        if port_rq_sum_mp[port]['RQ'] == 1 :
+            if port != "NaN" :
+                version = get_http(port_rq_sum_mp[port]['httpVersions'])
+                if len(version) == 1:
+                    if version[0] not in version_data :
+                        version_data[version[0]] = {}
+                        version_data[version[0]]['size'] = 0
+                        version_data[version[0]]['data'] = set()
+                    else :
+                        version_data[version[0]]['size'] +=  round(port_rq_sum_mp[port]['contentSize'],2)
+                        for content in port_rq_sum_mp[port]['contentType'] :
+                            version_data[version[0]]['data'].add(content.lower())
+                else :
+                    different_port.append(port)
+                new = "{:8} {:20} {:20} {:10}".format(str(port), str(version), str(round(port_rq_sum_mp[port]['contentSize'],2))+ "Kbs", str(port_rq_sum_mp[port]['contentType']))
+                new = textwrap.fill(new, width=line_length)
+                print(new)
+                f.write(new)
+                next_line(f)
+    f.write("Ports used by the browser")
+    next_line(f)
+    print("Ports used by the browser")    
+    for port in port_rq_sum_mp :
+        if port_rq_sum_mp[port]['RQ'] == 0 :
+            f.write("{0:10} {1} ".format(port, port_rq_sum_mp[port]['domain']))
+            next_line(f)
+            print("{0:10} {1} ".format(port, port_rq_sum_mp[port]['domain']))
+            
+    for port in different_port:
+        version = get_http(port_rq_sum_mp[port]['httpVersions'])
+        f.write(str(port) + " : This port has " + str(version) + " supported on it at the same time.")
+        next_line(f)
+        print(port, ": This port has ", version, " supported on it at the same time.")
+    return version_data
+
+def get_http_chart(version_data, plt_path):
+    version_labels = []
+    version_size = []
+    max_len = 0
+    for version in version_data:
+        version_labels.append(version)
+        version_size.append(version_data[version]['size'])
+        version_data[version]['data'] = list(version_data[version]['data']) 
+        max_len = max(max_len, len(version_data[version]['data']))
+
+    version_data_type = []
+    for num in range(max_len):
+        temp_list = ["" for x in version_data.keys()]
+        for ind in range(len(version_data.keys())):
+            http_type = list(version_data.keys())[ind]
+            if num < len(version_data[http_type]['data']):
+                temp_list[ind] = version_data[http_type]['data'][num]
+        version_data_type.append(temp_list)
+
+    fig,(ax1, ax2) = plt.subplots(1,2, figsize=(10,10))
+    ax1.pie(version_size, labels=version_labels, autopct='%1.1f%%')
+    ax2.axis('tight')
+    ax2.axis('off')
+    ax2.table(cellText=version_data_type, colLabels=version_labels, loc='center')
+    fig.savefig(plt_path)
+    plt.show() 
 

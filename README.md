@@ -13,6 +13,8 @@ Measurement toolkit for identifying congestion control algorithms in the wild
 #### Running flow semantic analysis
 4. Run ```analysis/semantics-perflow.py <descriptor>```. For example, ```python3 semantics-perflow.py sample-test```.  The summary json file, summary text file and the charts will be stored in ```Nebby/logs/results/``` as ```<descriptor>.json, <descriptor>.txt and <descriptor>.png```. 
 
+5. To get the detailed information about the port, go to ```Nebby\analysis```. Run ```python3 port_info.py <descriptor>```. This file reads the json data file and asks you for the port you want the info about. Enter the port number and press enter to look at the data for that port.
+
 ### Notes:
 * Run ```scripts/clean.sh``` to clear old files, queues, etc. before a fresh test
 * While measuring video, choose a relatively higher bandwidth (>500kbps). 200kbps is sufficient for static webpages.
