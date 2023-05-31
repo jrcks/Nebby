@@ -4,11 +4,16 @@
 # file_name = "jiocinema"
 with open("helper.py") as infile:
     exec(infile.read())
+try : 
+    driver.get("https://www.jiocinema.com/")
+    time.sleep(10)
+    driver.get('https://www.jiocinema.com/sports/gt-vs-dc-highlights/3739293')
+    time.sleep(100)
 
-driver.get("https://www.jiocinema.com/")
-time.sleep(10)
-driver.get('https://www.jiocinema.com/sports/gt-vs-dc-highlights/3739293')
-time.sleep(100)
+except Exception as e :
+    print("Exceptions Raised for this : ", file_name , e)
+    print()
 
-save_har_file(file_name)
-quit_driver()
+finally :
+    save_har_file(file_name)
+    quit_driver()

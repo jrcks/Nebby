@@ -1,7 +1,11 @@
 from datetime import datetime 
 import textwrap
-from pprint import pprint
 import matplotlib.pyplot as plt
+import sys, os
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+
+# blockPrint()
 
 def get_request_list(entries):
     request_list = []
@@ -179,11 +183,16 @@ def get_port_rq_summary(port_rq_dict,cid_port_mp,cid_groupid_mp, flows):
     for key in flows.keys():
         port = int(key)
         if port not in port_rq_dict :
-            port_rq_sum_mp[port] = {}
-            port_rq_sum_mp[port]['RQ'] = 0
-            cid  = list(cid_port_mp.keys())[list(cid_port_mp.values()).index(port)]
-            port_rq_sum_mp[port]['domain'] = cid_groupid_mp[cid]
-            port_rq_sum_mp[port]['nebbySize'] = int(flows[str(port)]['last_ack'])/1000
+            if port in cid_port_mp.values() :
+                port_rq_sum_mp[port] = {}
+                port_rq_sum_mp[port]['RQ'] = 0
+                cid  = list(cid_port_mp.keys())[list(cid_port_mp.values()).index(port)]
+                port_rq_sum_mp[port]['domain'] = cid_groupid_mp[cid]
+                port_rq_sum_mp[port]['nebbySize'] = int(flows[str(port)]['last_ack'])/1000
+            else :
+                port_rq_sum_mp[port] = {}
+                port_rq_sum_mp[port]['RQ'] = -1
+                port_rq_sum_mp[port]['Note'] = "Present in Nebby but not in Netlog"
     return port_rq_sum_mp
 
 
@@ -213,10 +222,9 @@ def print_port_http_size_type(port_rq_sum_mp, f):
                         version_data[version[0]] = {}
                         version_data[version[0]]['size'] = 0
                         version_data[version[0]]['data'] = set()
-                    else :
-                        version_data[version[0]]['size'] +=  round(port_rq_sum_mp[port]['contentSize'],2)
-                        for content in port_rq_sum_mp[port]['contentType'] :
-                            version_data[version[0]]['data'].add(content.lower())
+                    version_data[version[0]]['size'] +=  round(port_rq_sum_mp[port]['contentSize'],2)
+                    for content in port_rq_sum_mp[port]['contentType'] :
+                        version_data[version[0]]['data'].add(content.lower())
                 else :
                     different_port.append(port)
                 new = "{:8} {:20} {:20} {:10}".format(str(port), str(version), str(round(port_rq_sum_mp[port]['contentSize'],2))+ "Kbs", str(port_rq_sum_mp[port]['contentType']))
@@ -265,5 +273,5 @@ def get_http_chart(version_data, plt_path):
     ax2.axis('off')
     ax2.table(cellText=version_data_type, colLabels=version_labels, loc='center')
     fig.savefig(plt_path)
-    plt.show() 
+    # plt.show() 
 

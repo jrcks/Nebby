@@ -2,13 +2,18 @@
 
 with open("helper.py") as infile:
     exec(infile.read())
+try :
 
-time.sleep(2)
+    # Put the short link here
+    driver.get('https://www.tiktok.com/@montanadarby/video/7217039897687887109?q=singapore&t=1685432274831')
 
-# Put the short link here
-driver.get('')
+    # wait.until(EC.presence_of_element_located((By.XPATH, "//div[@data-e2e='modal-close-inner-button']"))).click()
 
-time.sleep(30)
+    time.sleep(30)
 
-save_har_file(file_name)
-quit_driver()
+except Exception as e :
+    print("Exceptions Raised for this : ", file_name , e)
+    print()
+finally :
+    save_har_file(file_name)
+    quit_driver()

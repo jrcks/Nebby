@@ -4,6 +4,8 @@ Measurement toolkit for identifying congestion control algorithms in the wild
 
 ## Dependancies: 
 1. Mahimahi ([install instructions here](http://mahimahi.mit.edu/))
+2. Use pip to install : matplotlib, pprint, textwrap, datetime.
+3. Install google-chrome since all selenium clients use chrome. 
 
 ## Running tests:
 1. Update choice of client in ```scripts/client.sh```.

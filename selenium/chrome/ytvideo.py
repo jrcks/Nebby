@@ -2,10 +2,17 @@
 with open("helper.py") as infile:
     exec(infile.read())
 
-driver.get('https://www.youtube.com/watch?v=XALBGkjkUPQ')
+try :
+    driver.get('https://www.youtube.com/watch?v=XALBGkjkUPQ')
 
-time.sleep(45)
+    time.sleep(45)
 
-save_har_file(file_name)
 
-quit_driver()
+except Exception as e :
+    print("Exceptions Raised for this : ", file_name , e)
+    print()
+
+finally:
+    save_har_file(file_name)
+
+    quit_driver()

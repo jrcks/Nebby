@@ -23,7 +23,8 @@ cid_port_mp, cid_groupid_mp = get_cid_port_mp(netlog_data['events'])
 
 print("A connection ID(CID) corresponds to one flow in chrome.")
 print("Checking the difference in CIDs")
-print("Number of CIDs from RQs (Browser - Websites)", len(cid_rq_dict.keys()))
+# Subtract one because NaN also there
+print("Number of CIDs from RQs (Browser - Websites)", len(cid_rq_dict.keys())-1)
 print("Number of CIDs from NETLOG (All flows started from Browser)", len(cid_port_mp.keys()))
 
 print()
@@ -37,7 +38,7 @@ port_rq_dict = get_port_rq_dict(cid_rq_dict, cid_port_mp)
 print()
 flows = process_flows(file, "../measurements/")
 print()
-print("RQs Ports", len(port_rq_dict.keys()))
+print("RQs Ports", len(port_rq_dict.keys())-1)
 print("Netlog Ports", len(cid_port_mp.keys()))
 print("Nebby Ports", len(flows.keys()))
 print("Ports present in Nebby but not in Netlog(Chrome)")
@@ -62,4 +63,4 @@ print("This data is saved at ", path+"results/"+file+".txt")
 plt_path = path+"results/"+file+".png"
 get_http_chart(version_data, plt_path)
 print("Chart Saved at ", plt_path)
-
+print("######################### END #############################")

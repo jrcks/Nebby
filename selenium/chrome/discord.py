@@ -3,32 +3,36 @@
 # file_name = "discord"
 with open("helper.py") as infile:
     exec(infile.read())
+count=0
 
-driver.get("https://discord.com/login")
-wait = WebDriverWait(driver, 60)
-time.sleep(2)
-email = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@name='email']")))
-email.send_keys("client.ferb@gmail.com")
-time.sleep(2)
-psd = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@name='password']")))
-psd.send_keys("Ferb@Client@2000")
-save_har_file(file_name+str(count))
-count+=1
+try : 
+    driver.get("https://discord.com/login")
+    time.sleep(2)
+    email = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@name='email']")))
+    email.send_keys("client.ferb@gmail.com")
+    time.sleep(2)
+    psd = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@name='password']")))
+    psd.send_keys("Ferb@Client@2000")
 
-psd.send_keys(Keys.ENTER)
-time.sleep(5)
+    count+=1
+    save_har_file(file_name+str(count))
 
-driver.get("https://discord.com/channels/707230275175841915/956567494766764072")
-time.sleep(10)
+    psd.send_keys(Keys.ENTER)
+    time.sleep(5)
 
-listen_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[div[text()='Listen In']]")))
-listen_button.click()
-time.sleep(30)
+    driver.get("https://discord.com/channels/707230275175841915/956567494766764072")
+    time.sleep(10)
 
-save_har_file(file_name+str(count))
-count+=1
+    listen_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[div[text()='Listen In']]")))
+    listen_button.click()
+    time.sleep(30)
+    count+=1
+    save_har_file(file_name+str(count))
+    
+except Exception as e :
+    print("Exceptions Raised for this : ", file_name , e)
+    print()
 
-
-convert_to_one_har(file_name, count)
-
-quit_driver()
+finally :
+    convert_to_one_har(file_name, count)
+    quit_driver()
