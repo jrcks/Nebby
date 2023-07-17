@@ -1,3 +1,4 @@
+#!/bin/bash
 sudo ifconfig ingress mtu 100
 
 #sudo echo "0" > /proc/sys/net/ipv4/tcp_sack
@@ -15,14 +16,17 @@ echo "Launching client..."
 
 
 #launch the desired client below:
+#get the algo from the name of the file
 name=$1
+arrIN=(${name//-/ })
+cc=${arrIN[0]}  
+# cd ..
+# cd selenium/chrome
 cd ..
-cd selenium/chrome
-
-#wget -U Mozilla https://www.zhihu.com/people/jie-zhi-61/creations/19573493 -O index
-#python3 spotify.py $name
-
-cd ..
+cd custom_clients
+# python3 spotify.py $name
+sudo ./host 1 youtube.html $cc
+# cd ..
 cd ..
 
 echo "DONE!"

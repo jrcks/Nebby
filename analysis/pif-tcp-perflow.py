@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import sys
 import math
 
-SHOW=True
+SHOW=False
 MULTI_GRAPH=False
 SMOOTHENING=False
 ONLY_STATS=False
@@ -42,6 +42,8 @@ def process_flows(cc, dir):
         o Group different flows by client's port
         '''
         flows={}
+        data_sent = 0
+        port_set = set()
         for row in csv_reader:
             packet=pkt(row)
             validPkt=False
@@ -49,7 +51,20 @@ def process_flows(cc, dir):
                 # reject the header
                 line_count+=1
                 continue
-            if packet.get("ip_src")=="100.64.0.2" and packet.get("frame_time_rel")!='' and packet.get("ack")!='': 
+            if data_sent == 0 : 
+                if len(port_set) < 2:
+                    if "100.64.0." in packet.get("ip_src") :    
+                        port_set.add(packet.get("ip_src"))
+                    if "100.64.0." in packet.get("ip_dest") :
+                        port_set.add(packet.get("ip_dest"))
+                    continue
+                else :
+                    data_sent = 1
+                    port_list = list(port_set)
+                    port_list.sort()
+                    host_port = port_list[-1]
+
+            if packet.get("ip_src")==host_port and packet.get("frame_time_rel")!='' and packet.get("ack")!='': 
                 # we care about this ACK packet
                 validPkt=True
                 port=packet.get("src_port")
@@ -61,7 +76,7 @@ def process_flows(cc, dir):
                 #flows[port]["windows"].append(int(flows[port]["bif"]))
                 flows[port]["pif"]-=1
                 flows[port]["cwnd"].append(flows[port]["pif"])
-            elif packet.get("ip_dest")=="100.64.0.2" and packet.get("frame_time_rel")!='' and packet.get("seq")!='':
+            elif packet.get("ip_dest")==host_port and packet.get("frame_time_rel")!='' and packet.get("seq")!='':
                 #we care about this Data packet
                 validPkt=True
                 port=packet.get("dest_port")
@@ -131,6 +146,8 @@ for f in files:
                 if j==0:
                     axs[i][j].set_ylabel("Bytes in flight")
     else:
+        plt.figure(figsize=(30,15))
+        plt.title(algo_cc)
         plt.xlabel("Time (s)")
         plt.ylabel("Bytes in flight")
     counter=0
@@ -139,8 +156,9 @@ for f in files:
             axs[counter%size[0]][(counter//size[0])%size[1]].scatter(flows[port]["times"], flows[port]["windows"], color="#858585")
             axs[counter%size[0]][(counter//size[0])%size[1]].plot(flows[port]["times"], flows[port]["windows"], label=str(port), linestyle="solid")
         else:
-            plt.plot(flows[port]["times"], flows[port]["windows"], label=str(port), linestyle="solid")
-            plt.scatter(flows[port]["times"], flows[port]["windows"], color="#858585")
+
+            plt.plot(flows[port]["times"], flows[port]["windows"], label=str(port), linestyle="solid", lw=0.5)
+            plt.scatter(flows[port]["times"], flows[port]["windows"], color="r", s=5)
         counter+=1
     if MULTI_GRAPH:
         counter=0
@@ -154,4 +172,4 @@ for f in files:
     if SHOW:
         plt.show()
     else:
-        plt.savefig("../plots/"+algo_cc+".png", dpi=600, bbox_inches='tight', pad_inches=0)
+        plt.savefig("../logs/plots/"+algo_cc+".png", dpi=600, bbox_inches='tight', pad_inches=0)

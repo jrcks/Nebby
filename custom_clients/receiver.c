@@ -66,15 +66,20 @@ int main(int argc, char *argv[])
     if( num_flow == 0)
         printf("Error: please enter a valid value for the number of flows");
     
-    if(argc < 2)
+    if(argc < 3)
         flow_size = 80 * 1024;
-    else
-        flow_size = (int)(atof(argv[2]) * 1024); 
+    else{
+        FILE* fp = fopen(argv[2], "r");
+        fseek(fp,0L,SEEK_END);
+        int sz = ftell(fp);
+        flow_size = sz+1;
+        fclose(fp); 
+    } 
     
     if( flow_size == 0)
         printf("Error: please enter a valid value for flow size");
 
-    if(argc < 3)
+    if(argc < 4)
         strcpy(congestion_ctl, "cubic");
     else
         strcpy(congestion_ctl, argv[3]);

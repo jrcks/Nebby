@@ -11,4 +11,4 @@ sudo ifconfig ingress mtu 100
 #sudo echo "0" > /proc/sys/net/ipv4/tcp_sack
 sudo tcpdump -i ingress -w test.pcap &
 mm-link ../traces/bw.trace ../traces/bw.trace --uplink-queue=$aqm --downlink-queue=$aqm --downlink-queue-args="bytes=$buff" --uplink-queue-args="bytes=$buff" mm-delay $postdelay ./client.sh $cc
-sudo killall tcpdump mm-link mm-delay
+sudo killall tcpdump mm-link mm-delay   
