@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import sys
 import math
 
-SHOW=False
+SHOW=True
 MULTI_GRAPH=False
 SMOOTHENING=False
 ONLY_STATS=False

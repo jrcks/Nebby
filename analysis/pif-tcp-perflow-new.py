@@ -4,10 +4,12 @@ import sys
 import math
 
 SHOW=True
-MULTI_GRAPH=True
+MULTI_GRAPH=False
 SMOOTHENING=False
 ONLY_STATS=False
 s_factor=0.9
+
+PKT_SIZE = 244
 
 '''
 TODO: 
@@ -57,69 +59,51 @@ def process_flows(cc, dir):
         # }
         for row in csv_reader:
             packet=pkt(row)
-            validPkt=False
-            sent_this_pkt = 0
-            acked_this_pkt = 0
             if line_count==0:
                 # reject the header
                 line_count+=1
                 continue
+            ackPkt = True
+            port="null"
             if packet.get("ip_src")=="100.64.0.2" and packet.get("frame_time_rel")!='' and packet.get("ack")!='': 
                 # we care about this ACK packet
-                validPkt=True
+                # update max ACK information
                 port=packet.get("src_port")
-                last_window=0
                 if port not in flows:
-                    flows[port]={"serverip":packet.get("ip_dest"), "serverport":packet.get("dest_port"), "times":[], "windows":[], "cwnd":[], "bif":0, "last_ack":0, "last_seq":0, "pif":0}
+                    flows[port]={"serverip":packet.get("ip_dest"), "serverport":packet.get("dest_port"), "times":[], "windows":[], "loss_bif":0, "max_ack":int(packet.get("ack")), "max_seq":0}
                 else:
-                    last_window = int(flows[port]["windows"][-1])
-                
-                if last_window >= 0 and int(packet.get("ack"))!=1:
-                    acked_this_pkt = int(packet.get("ack"))-int(flows[port]["last_ack"])
-                flows[port]["times"].append(float(packet.get("frame_time_rel")))
-                flows[port]["windows"].append(max(0,last_window-acked_this_pkt))
-                flows[port]["last_ack"] = int(packet.get("ack"))
-                flows[port]["last_seq"] = int(packet.get("seq"))
-                
-                # Old logic:
-                '''
-                flows[port]["times"].append(float(packet.get("frame_time_rel")))
-                flows[port]["bif"]-=(int(packet.get("ack"))-int(flows[port]["last_ack"]))
-                flows[port]["last_ack"]=int(packet.get("ack"))
-                #flows[port]["windows"].append(int(flows[port]["bif"]))
-                flows[port]["pif"]-=1
-                flows[port]["cwnd"].append(flows[port]["pif"])
-                '''
-            elif packet.get("ip_dest")=="100.64.0.2" and packet.get("frame_time_rel")!='' and packet.get("seq")!='':
-                #we care about this Data packet
-                validPkt=True
+                    # update max_ack
+                    flows[port]["max_ack"] = max(flows[port]["max_ack"], int(packet.get("ack")))
+            elif packet.get("ip_dest")=="100.64.0.2" and packet.get("frame_time_rel")!='' and packet.get("seq")!='' :
+                # we care about this Data packet
+                # update max seq information
+                ackPkt = False
                 port=packet.get("dest_port")
-                last_window=0
                 if port not in flows:
-                    flows[port]={"serverip":packet.get("ip_src"), "serverport":packet.get("src_port"), "times":[], "windows":[], "cwnd":[], "bif":0, "last_ack":0, "last_seq":0, "pif":0}
+                    flows[port]={"serverip":packet.get("ip_src"), "serverport":packet.get("src_port"), "times":[], "windows":[], "loss_bif":int(packet.get("seq")), "max_ack":0, "max_seq":int(packet.get("seq"))}
                 else:
-                    last_window = int(flows[port]["windows"][-1])
-                
-                if last_window >= 0 and int(packet.get("seq"))!=1:
-                    sent_this_pkt = int(packet.get("tcp_len"))
-                flows[port]["times"].append(float(packet.get("frame_time_rel")))
-                flows[port]["windows"].append(last_window+sent_this_pkt)
-                flows[port]["last_ack"] = int(packet.get("ack"))
-                flows[port]["last_seq"] = int(packet.get("seq"))
-
-                # Old logic:
-                '''
-                flows[port]["times"].append(float(packet.get("frame_time_rel")))
-                flows[port]["bif"]+=(int(packet.get("seq"))-int(flows[port]["last_seq"]))
-                flows[port]["last_seq"]=int(packet.get("seq"))
-                flows[port]["pif"]+=1
-                flows[port]["cwnd"].append(flows[port]["pif"])
-                '''
+                    # update max_seq
+                    flows[port]["max_seq"] = int(packet.get("seq")) #max(flows[port]["max_seq"], int(packet.get("seq")))
             
-            #if SMOOTHENING and validPkt and len(flows[port]["windows"])>2:
-            #    flows[port]["windows"].append(int((s_factor*flows[port]["windows"][-1])+((1-s_factor)*flows[port]["bif"])))
-            #elif validPkt:
-            #    flows[port]["windows"].append(int(flows[port]["bif"]))
+            # Now that max_ack and max_ack have been updated, window update algorithm goes here
+            if port != "null":
+                bif = 0
+                normal_est_bif = int(flows[port]["max_seq"]) - int(flows[port]["max_ack"])
+                loss_est_bif = flows[port]["loss_bif"]
+                if ackPkt and int(packet.get("ack")) <= flows[port]["max_ack"] and len(flows[port]["windows"]) > 10: # we have received atleast the first window
+                    loss_est_bif = int(flows[port]["windows"][-1]) - PKT_SIZE
+                    flows[port]["max_ack"] += PKT_SIZE
+                    bif = min( normal_est_bif, loss_est_bif )
+                elif ackPkt:
+                    loss_est_bif = normal_est_bif 
+                    bif = normal_est_bif
+                else:
+                    bif = normal_est_bif
+                flows[port]["loss_bif"] = loss_est_bif
+                flows[port]["times"].append( float(packet.get("frame_time_rel")) )
+                flows[port]["windows"].append( int(bif) )
+                
+
             line_count+=1
             total_bytes+=int(packet.get("frame_len"))
             #print(line_count, total_bytes)
@@ -136,7 +120,7 @@ def get_flow_stats(flows):
     print("------------------------------------------------------------------------------")
     print('%6s'%"port", '%15s'%"SrcIP", '%8s'%"SrcPort",  '%8s'%"duration",  '%8s'%"start",  '%8s'%"end", '%8s'%"Sent (B)", '%8s'%"Recv (B)",)
     for k in flows.keys():
-        print('%6s'%k, '%15s'%flows[k]["serverip"], '%8s'%flows[k]["serverport"], '%8s'%str('%.2f'%(flows[k]["times"][-1]-flows[k]["times"][0])), '%8s'%str('%.2f'%flows[k]["times"][0]), '%8s'%str('%.2f'%flows[k]["times"][-1]), '%8s'%flows[k]["last_seq"], '%8s'%flows[k]["last_ack"])
+        print('%6s'%k, '%15s'%flows[k]["serverip"], '%8s'%flows[k]["serverport"], '%8s'%str('%.2f'%(flows[k]["times"][-1]-flows[k]["times"][0])), '%8s'%str('%.2f'%flows[k]["times"][0]), '%8s'%str('%.2f'%flows[k]["times"][-1]), '%8s'%flows[k]["max_seq"], '%8s'%flows[k]["max_ack"])
         #print("    * Flow "+str(k)+": ", flows[k]["last_ack"], " ", flows[k]["last_seq"], " bytes transfered.")
     return num
 
@@ -199,3 +183,4 @@ for f in files:
         plt.show()
     else:
         plt.savefig("../plots/"+algo_cc+".png", dpi=600, bbox_inches='tight', pad_inches=0)
+
