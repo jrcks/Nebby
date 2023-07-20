@@ -59,6 +59,7 @@ def process_flows(cc, dir):
         # }
         for row in csv_reader:
             reTx = 0
+            dupAck = False
             packet=pkt(row)
             if line_count==0:
                 # reject the header
@@ -73,10 +74,14 @@ def process_flows(cc, dir):
                 if port not in flows:
                     flows[port]={"serverip":packet.get("ip_dest"), "serverport":packet.get("dest_port"), "times":[], "windows":[], "loss_bif":0, "max_ack":int(packet.get("ack")), "max_seq":0}
                 else:
+                    # check for dupAck
+                    if int(packet.get("ack")) <= int(flows[port]["max_ack"]):
+                        dupAck = True
                     # update max_ack
                     flows[port]["max_ack"] = max(flows[port]["max_ack"], int(packet.get("ack")))
                     if int(packet.get("seq")) < flows[port]["max_ack"]:
                         reTx += int(packet.get("tcp_len"))
+                    
             elif packet.get("ip_dest")=="100.64.0.2" and packet.get("frame_time_rel")!='' and packet.get("seq")!='' :
                 # we care about this Data packet
                 # update max seq information
@@ -93,7 +98,9 @@ def process_flows(cc, dir):
                 bif = 0
                 normal_est_bif = int(flows[port]["max_seq"]) - int(flows[port]["max_ack"]) #+ reTx
                 loss_est_bif = flows[port]["loss_bif"]
-                if ackPkt and int(packet.get("ack")) <= int(flows[port]["max_ack"]) and len(flows[port]["windows"]) > 10: # we have received atleast the first window
+                if ackPkt and dupAck and len(flows[port]["windows"]) > 10: # we have received atleast the first window
+                    if len(flows[port]["windows"]) < 2000: # print reTx in first 200 packets
+                        print( packet.get("ack"), flows[port]["max_ack"])
                     loss_est_bif = int(flows[port]["windows"][-1]) - PKT_SIZE
                     flows[port]["max_ack"] += PKT_SIZE
                     bif = min( normal_est_bif, loss_est_bif )
