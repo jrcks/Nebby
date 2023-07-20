@@ -58,6 +58,7 @@ def process_flows(cc, dir):
         #     "pif"
         # }
         for row in csv_reader:
+            reTx = 0
             packet=pkt(row)
             if line_count==0:
                 # reject the header
@@ -74,6 +75,8 @@ def process_flows(cc, dir):
                 else:
                     # update max_ack
                     flows[port]["max_ack"] = max(flows[port]["max_ack"], int(packet.get("ack")))
+                    if int(packet.get("seq")) < flows[port]["max_ack"]:
+                        reTx += int(packet.get("tcp_len"))
             elif packet.get("ip_dest")=="100.64.0.2" and packet.get("frame_time_rel")!='' and packet.get("seq")!='' :
                 # we care about this Data packet
                 # update max seq information
@@ -88,9 +91,9 @@ def process_flows(cc, dir):
             # Now that max_ack and max_ack have been updated, window update algorithm goes here
             if port != "null":
                 bif = 0
-                normal_est_bif = int(flows[port]["max_seq"]) - int(flows[port]["max_ack"])
+                normal_est_bif = int(flows[port]["max_seq"]) - int(flows[port]["max_ack"]) #+ reTx
                 loss_est_bif = flows[port]["loss_bif"]
-                if ackPkt and int(packet.get("ack")) <= flows[port]["max_ack"] and len(flows[port]["windows"]) > 10: # we have received atleast the first window
+                if ackPkt and int(packet.get("ack")) <= int(flows[port]["max_ack"]) and len(flows[port]["windows"]) > 10: # we have received atleast the first window
                     loss_est_bif = int(flows[port]["windows"][-1]) - PKT_SIZE
                     flows[port]["max_ack"] += PKT_SIZE
                     bif = min( normal_est_bif, loss_est_bif )
