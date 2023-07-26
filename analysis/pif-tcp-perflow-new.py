@@ -3,12 +3,14 @@ import matplotlib.pyplot as plt
 import sys
 import math
 
-SHOW=True
+SHOW=False
 MULTI_GRAPH=False
 SMOOTHENING=False
 ONLY_STATS=False
 s_factor=0.9
 
+
+FEEDBACK_DELAY = 200 #feedback delay in ms
 PKT_SIZE = 244
 
 '''
@@ -33,6 +35,9 @@ class pkt:
         
 
 def process_flows(cc, dir):
+    global PKT_SIZE
+    loss_times = []
+    loss_windows = []
     with open(dir+cc+"-tcp.csv") as csv_file:
         print("Reading "+dir+cc+"-tcp.csv...")
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -77,9 +82,11 @@ def process_flows(cc, dir):
                     # check for dupAck
                     if int(packet.get("ack")) <= int(flows[port]["max_ack"]):
                         dupAck = True
+                        loss_times.append(float(packet.get("frame_time_rel")))
+                        loss_windows.append(flows[port]["windows"][-1])
                     # update max_ack
                     flows[port]["max_ack"] = max(flows[port]["max_ack"], int(packet.get("ack")))
-                    if int(packet.get("seq")) < flows[port]["max_ack"]:
+                    if int(packet.get("seq")) < flows[port]["max_seq"]:
                         reTx += int(packet.get("tcp_len"))
                     
             elif packet.get("ip_dest")=="100.64.0.2" and packet.get("frame_time_rel")!='' and packet.get("seq")!='' :
@@ -91,12 +98,14 @@ def process_flows(cc, dir):
                     flows[port]={"serverip":packet.get("ip_src"), "serverport":packet.get("src_port"), "times":[], "windows":[], "loss_bif":int(packet.get("seq")), "max_ack":0, "max_seq":int(packet.get("seq"))}
                 else:
                     # update max_seq
-                    flows[port]["max_seq"] = int(packet.get("seq")) #max(flows[port]["max_seq"], int(packet.get("seq")))
+                    PKT_SIZE = int(packet.get("tcp_len"))
+                    flows[port]["max_seq"] = max(flows[port]["max_seq"], int(packet.get("seq")))
             
             # Now that max_ack and max_ack have been updated, window update algorithm goes here
+            
             if port != "null":
                 bif = 0
-                normal_est_bif = int(flows[port]["max_seq"]) - int(flows[port]["max_ack"]) #+ reTx
+                normal_est_bif = int(flows[port]["max_seq"]) - int(flows[port]["max_ack"]) + PKT_SIZE
                 loss_est_bif = flows[port]["loss_bif"]
                 if ackPkt and dupAck and len(flows[port]["windows"]) > 10: # we have received atleast the first window
                     if len(flows[port]["windows"]) < 2000: # print reTx in first 200 packets
@@ -119,7 +128,7 @@ def process_flows(cc, dir):
             #print(line_count, total_bytes)
             
         print("total bytes processed:", total_bytes/1000, "KBytes for", cc, "(unlimited)")
-    return flows
+    return flows, loss_times, loss_windows
 
 def custom_smooth_function():
     pass
@@ -139,8 +148,8 @@ for f in files:
     algo_cc=f
     #Get the data for all the flows
     print("==============================================================================")
-    print("opening trace ../measurements/"+algo_cc+".csv...")
-    flows = process_flows(algo_cc, "../measurements/")
+    print("opening trace ../wierd_measurements/"+algo_cc+".csv...")
+    flows, loss_times, loss_windows = process_flows(algo_cc, "../wierd_measurements/")
     #decide on final graph layout
     num = get_flow_stats(flows)
 
@@ -179,6 +188,7 @@ for f in files:
         else:
             plt.plot(flows[port]["times"], flows[port]["windows"], label=str(port), linestyle="solid")
             plt.scatter(flows[port]["times"], flows[port]["windows"], color="#858585")
+            plt.scatter(loss_times, loss_windows, color="#880000", label="DupACKs")
         counter+=1
     if MULTI_GRAPH:
         counter=0
@@ -192,5 +202,5 @@ for f in files:
     if SHOW:
         plt.show()
     else:
-        plt.savefig("../plots/"+algo_cc+".png", dpi=600, bbox_inches='tight', pad_inches=0)
+        plt.savefig("../plots/tests/"+algo_cc+".png", dpi=600, bbox_inches='tight', pad_inches=0)
 
