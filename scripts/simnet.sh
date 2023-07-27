@@ -28,7 +28,7 @@ done
 #pcap name
 dump=test.pcap
 
-mm-delay $predelay ./btl.sh $dump $postdelay $buff $aqm $cc
+mm-delay $predelay ./new-btl.sh $dump $postdelay $buff $aqm $cc
 
 #ssh edith killall iperf
 sudo killall mm-delay
