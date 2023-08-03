@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import sys
 import math
 
-SHOW=False
+SHOW=True
 MULTI_GRAPH=False
 SMOOTHENING=False
 ONLY_STATS=False
@@ -148,8 +148,8 @@ for f in files:
     algo_cc=f
     #Get the data for all the flows
     print("==============================================================================")
-    print("opening trace ../wierd_measurements/"+algo_cc+".csv...")
-    flows, loss_times, loss_windows = process_flows(algo_cc, "../wierd_measurements/")
+    print("opening trace ../measurements/"+algo_cc+".csv...")
+    flows, loss_times, loss_windows = process_flows(algo_cc, "../measurements/")
     #decide on final graph layout
     num = get_flow_stats(flows)
 
