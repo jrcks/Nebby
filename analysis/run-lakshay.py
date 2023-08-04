@@ -10,13 +10,18 @@ import pickle
 '''
 For getting the bytes in file trace
 run-lakshay.py -b filenames
+
 For getting the features
 run-lakshay.py -f filenames
+
 For getting the polynomial fit of each feature and the mse error seen while fitting the polynomial with degree 1 to MAX_DEG
 run-lakshay.py -c filenames 
+-----Add a legend here 
+
 For training the model on train and saving the parameters of the model
 run-lakshay.py -t output_file folder_name
-For testing the model on known traces and getting the accuray
+
+For testing the model on known traces and getting the accuracy
 run-lakshay.py -a param_file folder_name
 '''
 
@@ -57,6 +62,7 @@ elif cmd == "t":
 
     with open(save_file, "wb") as f:
         pickle.dump(output, f)
+    
 elif cmd == "a":
     param_file = files[0]
     folder = files[1]

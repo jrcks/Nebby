@@ -10,10 +10,11 @@ def getCCcoeff(ccs,present_files,ss=225,p="n",ft_thresh=100):
         for f in present_files:
             curr_cc = f.split("-")[0] 
             if v == curr_cc :
-                files.append(f)       
-        cc_mp = get_feature_degree(files,ss=ss,p=p,ft_thresh=ft_thresh)
-        coeff = getCC(files, cc_mp,p=p)
-        cc_coeff[v] = coeff[v]
+                files.append(f)
+        if len(files)>0:        
+            cc_mp = get_feature_degree(files,ss=ss,p=p,ft_thresh=ft_thresh)
+            coeff = getCC(files, cc_mp,p=p)
+            cc_coeff[v] = coeff[v]
         #     getRed(files,p="y")
     return cc_coeff 
 
