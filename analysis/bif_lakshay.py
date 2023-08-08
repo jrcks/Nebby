@@ -125,7 +125,7 @@ def process_flows(cc, dir,p="y"):
 #                 if int(port) != 50468:
 #                     continue
                 if port not in flows:
-                    flows[port]={"OOA":[],"DA":[],"max_seq":int(packet.get("max_seq")),"loss_bif":0,"max_ack":0,"serverip":packet.get("ip_src"), "serverport":packet.get("src_port"),"act_times":[], "times":[], "windows":[], "cwnd":[], "bif":0, "last_ack":0, "last_seq":0, "pif":0, "drop":[], "next":0, "retrans":[]}
+                    flows[port]={"OOA":[],"DA":[],"max_seq":int(packet.get("seq")),"loss_bif":0,"max_ack":0,"serverip":packet.get("ip_src"), "serverport":packet.get("src_port"),"act_times":[], "times":[], "windows":[], "cwnd":[], "bif":0, "last_ack":0, "last_seq":0, "pif":0, "drop":[], "next":0, "retrans":[]}
                 
                 else:
                     flows[port]["max_seq"] = max(flows[port]["max_seq"], int(packet.get("seq")))
