@@ -1,4 +1,6 @@
 #ignore all log files
 logs/
-measurements/*.csv
+measurements/*
 scripts/_*
+.i*
+.v*

@@ -8,7 +8,8 @@ postdelay=$3
 bw=$4
 # Buffer size in bytes, set to 1 BDP
 buffBDP=$5
-bdp=$(($(($(($predelay+$postdelay))*$bw))/4))
+link=$6
+bdp=$(($(($(($predelay+$postdelay))*$bw*$buffBDP))/4))
 echo $bdp
 buff=$bdp #(($(($buffBDP))*$(($bdp))))
 echo $buff
@@ -26,9 +27,10 @@ do
 echo $(($(($c*1000))/$num)) >> ../traces/bw.trace
 done
 #pcap name
+echo $cc
 dump=test.pcap
-
-mm-delay $predelay ./new-btl.sh $dump $postdelay $buff $aqm $cc
-
+echo $predelay
+# mm-delay $predelay ./btl.sh $dump $postdelay $buff $aqm $cc 
+mm-delay $predelay ./btl.sh $dump $postdelay $buff $aqm $cc $link
 #ssh edith killall iperf
 sudo killall mm-delay
