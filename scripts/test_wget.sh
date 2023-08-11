@@ -1,3 +1,4 @@
+#!/bin/bash
 input="../top1k.txt"
 while IFS= read -r line
 do
