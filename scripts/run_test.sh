@@ -12,6 +12,6 @@ file=$6
 ./simnet.sh $cc $predelay $postdelay $linkspeed $buffsize $file
 ../analysis/pcap2csv.sh test.pcap
 
-cp test.pcap-tcp.csv ../measurements/top1k/$cc-tcp.csv
-cp test.pcap-udp.csv ../measurements/top1k/$cc-udp.csv
+cp test.pcap-tcp.csv ../measurements/$cc-tcp.csv
+cp test.pcap-udp.csv ../measurements/$cc-udp.csv
 rm -f index*

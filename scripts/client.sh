@@ -26,7 +26,7 @@ link=$2
 #wget -U Mozilla hombayre.d2.comp.nus.edu.sg:8080/tcpcensus_sigmetrics2020.pdf -O index
 echo $link 
 
-wget -U Mozilla $link -O index
+wget --tries=1 --timeout=30 -U Mozilla $link -O index
 
 # cd ..
 # cd selenium/chrome
