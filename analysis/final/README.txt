@@ -9,6 +9,9 @@ p arguement can take y/n :
     y means plot the bytes-in-flight graph, the fit graph and the error graph. 
     n mean plot nothing just output the result.
 
+python3 check_cc_folder.py [folder_path] [output_file_name]
+output_file_name is the file to which the output will be written. 
+** We can update the formatted string in the end of check_cc_folder.py to output the results as csv or any other format.
 
 Output: 
 The flow is as such :
