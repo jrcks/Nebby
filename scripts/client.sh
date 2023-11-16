@@ -1,5 +1,5 @@
 #!/bin/bash
-#sudo ifconfig ingress mtu 100
+sudo ifconfig ingress mtu 100
 sudo sysctl net.ipv4.tcp_sack=0
 echo "Launching client..."
 cc=$1
