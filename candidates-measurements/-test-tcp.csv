@@ -1,5 +1,0 @@
-_ws.col.Time,frame.time_relative,tcp.time_relative,frame.number,frame.len,ip.src,tcp.srcport,ip.dst,tcp.dstport,tcp.len,tcp.seq,tcp.ack
-"15:47:31.599059","0.000000000",,"1","76",,,,,,,
-"15:47:31.631349","0.032290000",,"2","76",,,,,,,
-"15:47:31.695337","0.096278000",,"3","76",,,,,,,
-"15:47:32.111239","0.512180000",,"4","76",,,,,,,

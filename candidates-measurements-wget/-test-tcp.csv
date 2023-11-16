@@ -1,0 +1,4 @@
+_ws.col.Time,frame.time_relative,tcp.time_relative,frame.number,frame.len,ip.src,tcp.srcport,ip.dst,tcp.dstport,tcp.len,tcp.seq,tcp.ack
+"16:35:24.571229","0.000000000",,"1","76",,,,,,,
+"16:35:25.423346","0.852117000",,"2","76",,,,,,,
+"16:35:25.455232","0.884003000",,"3","76",,,,,,,
