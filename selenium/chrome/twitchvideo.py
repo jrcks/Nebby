@@ -5,7 +5,7 @@ with open("helper.py") as infile:
 
 try:
 #viedo URL goes here:
-    video_url="https://www.twitch.tv/esl_csgo" #sys.argv[1]
+    video_url="[your_twitch_video_url]" #sys.argv[1]
     driver.get(video_url)
 
 # Wait for the video to load and play
