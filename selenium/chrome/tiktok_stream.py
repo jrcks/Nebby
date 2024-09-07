@@ -3,7 +3,7 @@ with open("helper.py") as infile:
     exec(infile.read())
 try:
     # Put the stream link here
-    driver.get('https://www.tiktok.com/@endangsriwati26392gmail0/live')
+    driver.get('[your_stream_lilnk_here]')
     # wait.until(EC.presence_of_element_located((By.XPATH, "//div[@data-e2e='modal-close-inner-button']"))).click()
     time.sleep(30)
 
