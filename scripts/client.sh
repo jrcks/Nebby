@@ -23,7 +23,7 @@ link=$2
 #wget -U Mozilla https://www.instagram.com/static/bundles/es6/FeedPageContainer.js/434e5de15e7c.js -O index
 # wget -U Mozilla https://www.reddit.com/r/AskReddit/comments/brlti4/reddit_what_are_some_underrated_apps/ -O index
 
-#wget -U Mozilla hombayre.d2.comp.nus.edu.sg:8080/tcpcensus_sigmetrics2020.pdf -O index
+
 echo $link 
 
 wget --tries=1 --timeout=30 -U Mozilla $link -O index
