@@ -7,11 +7,11 @@ driver.get('https://accounts.google.com')
 
 count=0
 email = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@name='identifier']")))
-email.send_keys("client.ferb@gmail.com")
+email.send_keys("[your_gmail1_here]")
 email.send_keys(Keys.ENTER)
 time.sleep(5)
 psd = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@name='Passwd']")))
-psd.send_keys("Ferb@Client@2000")
+psd.send_keys("[your_gmail_password1_here]")
 
 count += 1
 save_har_file(file_name+str(count))
@@ -51,11 +51,11 @@ def foo(file_name, count):
 
     child_email = child_wait.until(EC.presence_of_element_located((By.XPATH, "//input[@name='identifier']")))
     print("Reached")
-    child_email.send_keys("client.phineas@gmail.com")
+    child_email.send_keys("[your_gmail2_here]")
     child_email.send_keys(Keys.ENTER)
     time.sleep(5)
     child_psd = child_wait.until(EC.presence_of_element_located((By.XPATH, "//input[@name='Passwd']")))
-    child_psd.send_keys("Phineas@Client@2000")
+    child_psd.send_keys("[your_gmail_password2_here]")
     child_psd.send_keys(Keys.ENTER)
     time.sleep(5)
     child_driver.get("https://meet.google.com")
