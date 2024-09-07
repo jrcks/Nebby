@@ -7,7 +7,7 @@ with open("helper.py") as infile:
 try : 
     driver.get("https://www.jiocinema.com/")
     time.sleep(10)
-    driver.get('https://www.jiocinema.com/sports/gt-vs-dc-highlights/3739293')
+    driver.get('[your_video_link_here]')
     time.sleep(100)
 
 except Exception as e :
