@@ -8,8 +8,8 @@ try :
     driver.get('https://accounts.spotify.com/en/login')
     wait.until(EC.presence_of_element_located((By.ID,'login-button'))) #put in tuple
 
-    driver.find_element(By.ID, 'login-username').send_keys('uselessemail3105@gmail.com')
-    driver.find_element(By.ID,'login-password').send_keys("Lakshay@31")
+    driver.find_element(By.ID, 'login-username').send_keys('[your_spotify_id_here]')
+    driver.find_element(By.ID,'login-password').send_keys("[your_spotify_password_here]")
 
     count += 1
     save_har_file(file_name+str(count))
@@ -23,8 +23,7 @@ try :
     save_har_file(file_name+str(count))
 
 
-    # driver.get("https://open.spotify.com/track/3hts3cIWNG8A2063si9GLP")
-    driver.get("https://open.spotify.com/track/1qTh7hzjd361hjuzeaMFWK")
+    driver.get("[your_spotify_link_here]")
 
     print("Fetched Song")
 
