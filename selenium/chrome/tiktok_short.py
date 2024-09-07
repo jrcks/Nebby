@@ -5,7 +5,7 @@ with open("helper.py") as infile:
 try :
 
     # Put the short link here
-    driver.get('https://www.tiktok.com/@montanadarby/video/7217039897687887109?q=singapore&t=1685432274831')
+    driver.get('[your_tiktok_short_link_here]')
 
     # wait.until(EC.presence_of_element_located((By.XPATH, "//div[@data-e2e='modal-close-inner-button']"))).click()
 
