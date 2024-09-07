@@ -3,7 +3,7 @@ with open("helper.py") as infile:
     exec(infile.read())
 
 try :
-    driver.get('https://www.youtube.com/watch?v=XALBGkjkUPQ')
+    driver.get('[your_youtube_video_url]')
 
     time.sleep(45)
 
