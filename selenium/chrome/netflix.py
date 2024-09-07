@@ -8,9 +8,9 @@ try :
     driver.get('https://www.netflix.com/login') 
 
     user_id = wait.until(EC.presence_of_element_located((By.NAME, 'userLoginId')))
-    user_id.send_keys("drpradeep_raj@yahoo.in")
+    user_id.send_keys("[your_netflix_id_here]")
     password = wait.until(EC.presence_of_element_located((By.NAME, 'password')))
-    password.send_keys('Pradeep@1290')
+    password.send_keys('[your_netflix_password_here]')
     time.sleep(5)
     count += 1
     save_har_file(file_name+str(count))
@@ -25,7 +25,7 @@ try :
     save_har_file(file_name+str(count))
 
 
-    driver.get("https://www.netflix.com/watch/81576597?trackId=253448517&tctx=1%2C0%2C265bedfb-7855-4be9-95d7-1ac8abd4c9df-141488113%2CNES_87386034059ACA445E74EE85300003-A64A86483F8E63-2E7DEF8CA1_p_1683023261679%2CNES_87386034059ACA445E74EE85300003_p_1683023261679%2C%2C%2C%2C81576597%2CVideo%3A81576597%2CminiDpPlayButton")
+    driver.get("[your_netflix_video_link_here]")
     time.sleep(120)
     count+=1
     save_har_file(file_name+str(count))
