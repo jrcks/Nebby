@@ -9,10 +9,10 @@ try :
     driver.get("https://discord.com/login")
     time.sleep(2)
     email = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@name='email']")))
-    email.send_keys("client.ferb@gmail.com")
+    email.send_keys("[your_email_here]")
     time.sleep(2)
     psd = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@name='password']")))
-    psd.send_keys("Ferb@Client@2000")
+    psd.send_keys("[your_password_here]")
 
     count+=1
     save_har_file(file_name+str(count))
@@ -20,7 +20,7 @@ try :
     psd.send_keys(Keys.ENTER)
     time.sleep(5)
 
-    driver.get("https://discord.com/channels/707230275175841915/956567494766764072")
+    driver.get("[your_channel_here]")
     time.sleep(10)
 
     listen_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[div[text()='Listen In']]")))
