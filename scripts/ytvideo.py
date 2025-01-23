@@ -1,43 +1,48 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 
+# Configure Chrome options
 options = Options()
-options.add_argument('--headless')
+options.add_argument('--headless')  # Run in headless mode
 
+# Initialize the WebDriver
 driver = webdriver.Chrome(options=options)
-driver.get('https://www.youtube.com/watch?v=XALBGkjkUPQ')
-# put the youtube video link here
+
+# URL of the YouTube video to be played
+youtube_url = 'https://www.youtube.com/watch?v=XALBGkjkUPQ'
+driver.get(youtube_url)
 
 # Wait for the video to load and play
-start_time = time.time()
+try:
+    # Start time
+    start_time = time.time()
 
-play_button = driver.find_element(By.CSS_SELECTOR, '.ytp-play-button')
-play_button.click()
+    # Wait for the play button to be clickable and click it
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, '.ytp-play-button'))
+    ).click()
 
-duration = driver.execute_script('return document.querySelector(".ytp-time-duration").textContent')
-duration = duration.split(':')
-duration_seconds = int(duration[-1]) + int(duration[-2]) * 60
-print(duration_seconds) 
+    # Get the duration of the video
+    duration = driver.execute_script('return document.querySelector(".ytp-time-duration").textContent')
+    duration_parts = duration.split(':')
+    # Convert minutes:seconds to seconds
+    duration_seconds = int(duration_parts[-2]) * 60 + int(duration_parts[-1])
 
+    print(f"Video duration: {duration_seconds} seconds")
 
-# Way 1
-time.sleep(duration_seconds)
+    # Wait for the video to finish playing
+    time.sleep(duration_seconds)
 
-# Way 2 with error 
+except Exception as e:
+    print(f"An error occurred: {e}")
 
-# # find the video element
-# video = driver.find_element(By.CSS_SELECTOR, 'video')
+finally:
+    driver.quit()
 
-# # # wait for the video to start playing
-# # WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'video[src][duration][currentTime]')))
-
-# # wait for the video to finish playing
-# duration = video.get_attribute('duration')
-# WebDriverWait(driver, int(duration)).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'video[src][currentTime="' + str(duration) + '"]')))
-
+# Total time taken
 end_time = time.time()
-
-print(end_time - start_time)
-driver.quit()
+print(f"Time taken: {end_time - start_time} seconds")

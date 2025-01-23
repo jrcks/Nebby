@@ -29,7 +29,10 @@ sudo apt install -y $DEPS
 
 # Install mahimahi as per http://mahimahi.mit.edu/
 git clone https://github.com/ravinet/mahimahi
-cd mahimahi || { echo "Failed to clone mahimahi."; exit 1; }
+cd mahimahi || {
+    echo "Failed to clone mahimahi."
+    exit 1
+}
 
 # Run the installation steps
 ./autogen.sh
@@ -39,11 +42,12 @@ sudo make install
 
 # Mark scripts as executable
 FILES="
-    ./scripts/test_wget.sh
-    ./scripts/new-btl.sh
+    ./scripts/btl.sh
     ./scripts/clean.sh
-    ./scripts/simnet.sh
     ./scripts/client.sh
+    ./scripts/new-btl.sh
+    ./scripts/run_test.sh
+    ./scripts/simnet.sh
 "
 sudo chmod +x $FILES
 

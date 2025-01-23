@@ -1,43 +1,48 @@
 #!/bin/bash
+
+# Set MTU for ingress interface
 sudo ifconfig ingress mtu 100
+
+# Disable TCP selective acknowledgment
 sudo sysctl net.ipv4.tcp_sack=0
+
 echo "Launching client..."
-cc=$1
-link=$2
 
-#launch the desired client below:
-#get the algo from the name of the file
-# name=$1
-# arrIN=(${name//-/ })
-# cc=${arrIN[0]}  
-# echo "Client"
-# echo $cc
+# Assign input parameters to meaningful variable names
+congestion_control="$1"
+link="$2"
+wget_output="wget.log" # Output file for wget logs
 
-#sudo echo "0" > /proc/sys/net/ipv4/tcp_sack
-# sudo tcpdump -i ingress -w aft-btl-test.pcap &
-# iperf3 -c [IP_SERVER} -p 2500 -C $cc -t 60 -R --connect-timeout 2000 -M 100
-#sudo sysctl net.ipv4.tcp_congestion_control=$1
-#iperf -c [IP_SERVER] -p 5000 -t 30 -Z $1
-#wget -U Mozilla https://www.youtube.com/ -O index
-#wget -U Mozilla https://open.spotify.com/user/deutschegrammophon/playlist/2B11k6zJ2vIJTjOiqz3Y35 -O index
-#wget -U Mozilla https://www.instagram.com/static/bundles/es6/FeedPageContainer.js/434e5de15e7c.js -O index
-# wget -U Mozilla https://www.reddit.com/r/AskReddit/comments/brlti4/reddit_what_are_some_underrated_apps/ -O index
+# Uncomment and modify the following lines to launch different clients as needed.
 
+# Example client launch with iperf3 (uncomment and set IP_SERVER)
+# echo "Running iperf3 with congestion control: $congestion_control"
+# iperf3 -c [IP_SERVER] -p 2500 -C "$congestion_control" -t 60 -R --connect-timeout 2000 -M 100
 
-echo $link 
+# Log the link
+echo "Executing wget for the link: $link"
 
-wget --tries=1 --timeout=30 -U Mozilla $link -O index
+# Run wget with the specified link
+if [[ -n "$wget_output" ]]; then
+    # If wget_output is set
+    echo "$congestion_control" >>"$wget_output"
+    echo "$link" >>"$wget_output"
+    wget -U Mozilla --tries=1 --timeout=30 "$link" -O index &>>"$wget_output"
+else
+    # If wget_output is not set
+    wget -U Mozilla --tries=1 --timeout=30 "$link" -O index
+fi
 
+# Uncomment the following block to run custom scripts or navigate directories
 # cd ..
 # cd selenium/chrome
 # cd ..
 # cd custom_clients
-# python3 spotify.py $name
-# sudo ./host 1 youtube.html $cc
+# python3 spotify.py "$name"
+# sudo ./host 1 youtube.html "$congestion_control"
 # cd ..
 # cd ..
 
-sleep 1
+sleep 1 # Wait for any background processes to complete
+
 echo "DONE!"
-# sudo killall iperf 
-#sudo killall iperf wget
