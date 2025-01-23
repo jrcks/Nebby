@@ -1,0 +1,3 @@
+[submodule "HARExportTrigger"]
+	path = selenium/HARExportTrigger
+	url = git@github.com:firefox-devtools/har-export-trigger.git
