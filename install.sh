@@ -39,7 +39,7 @@ sudo make install
 
 # Mark scripts as executable
 FILES="
-    ./scripts/_test_wget.sh
+    ./scripts/test_wget.sh
     ./scripts/new-btl.sh
     ./scripts/clean.sh
     ./scripts/simnet.sh
