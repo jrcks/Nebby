@@ -53,7 +53,7 @@ for ((i = 1; i <= num_entries; i++)); do
 done
 
 # Enable IP forwarding
-sudo sysctl -w net.ipv4.ip_forward=1
+sudo sysctl -w net.ipv4.ip_forward=1 1>/dev/null
 
 # Execute the bandwidth test with specified parameters
 mm-delay "$predelay" ./btl.sh "$dump" "$postdelay" "$bdp" "$aqm" "$cca" "$url" "$output_dir"

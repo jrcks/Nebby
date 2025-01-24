@@ -12,7 +12,8 @@ url="$2"
 output_dir="$3"
 
 # Set the output file for wget logs
-wget_output="${output_dir}/wget.log"
+# wget_output="${output_dir}/wget.log"
+wget_output=""
 
 # Check if the output directory exists, create it if not
 if [ ! -d "$output_dir" ]; then
@@ -24,30 +25,29 @@ fi
 sudo ifconfig ingress mtu 100
 
 # Disable TCP selective acknowledgment
-sudo sysctl net.ipv4.tcp_sack=0
-
-echo "[client.sh] Launching client..."
+sudo sysctl net.ipv4.tcp_sack=0 1>/dev/null
 
 # Uncomment and modify the following lines to launch different clients as needed.
 
+# === iperf3 client === #
 # Example client launch with iperf3 (uncomment and set IP_SERVER)
 # echo "[client.sh] Running iperf3 with congestion control: $cca"
 # iperf3 -c [IP_SERVER] -p 2500 -C "$cca" -t 60 -R --connect-timeout 2000 -M 100
 
-# Log the url
-echo "[client.sh] Executing wget for the url: $url"
-
+# === wget client === #
 # Run wget with the specified url
+echo "[client.sh] Executing wget for the url: $url"
 if [[ -n "$wget_output" ]]; then
     # If wget_output is set
     echo "$cca" >>"$wget_output"
     echo "$url" >>"$wget_output"
-    wget -U Mozilla --tries=1 --timeout=30 "$url" -O index &>>"$wget_output"
+    wget -U Mozilla --tries=1 --timeout=30 "$url" -O "$output_dir/index.html" &>>"$wget_output"
 else
     # If wget_output is not set
-    wget -U Mozilla --tries=1 --timeout=30 "$url" -O index
+    wget -U Mozilla --tries=1 --timeout=30 "$url" -O "$output_dir/index.html"
 fi
 
+# === selenium client === #
 # Uncomment the following block to run custom scripts or navigate directories
 # cd ..
 # cd selenium/chrome
@@ -59,5 +59,4 @@ fi
 # cd ..
 
 sleep 1 # Wait for any background processes to complete
-
 echo "DONE!"

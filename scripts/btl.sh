@@ -48,4 +48,4 @@ sleep 2
 
 # Stop tcpdump and other running processes
 echo "[btl.sh] Stopping tcpdump and related processes..."
-sudo killall tcpdump mm-link mm-delay
+sudo killall tcpdump mm-link mm-delay 2>/dev/null
