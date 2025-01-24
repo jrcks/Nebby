@@ -45,7 +45,7 @@ def process_flows(cc, dir):
         total_bytes=0
         '''
         Flow tracking:
-        o Identify all packets that are either sourced from or headed to 100.64.0.2
+        o Identify all packets that are either sourced from or headed to 10.0.0.2
         o Group different flows by client's port
         '''
         flows={}
@@ -72,7 +72,7 @@ def process_flows(cc, dir):
                 continue
             ackPkt = True
             port="null"
-            if packet.get("ip_src")=="100.64.0.2" and packet.get("frame_time_rel")!='' and packet.get("ack")!='': 
+            if packet.get("ip_src")=="10.0.0.2" and packet.get("frame_time_rel")!='' and packet.get("ack")!='': 
                 # we care about this ACK packet
                 # update max ACK information
                 port=packet.get("src_port")
@@ -89,7 +89,7 @@ def process_flows(cc, dir):
                     if int(packet.get("seq")) < flows[port]["max_seq"]:
                         reTx += int(packet.get("tcp_len"))
                     
-            elif packet.get("ip_dest")=="100.64.0.2" and packet.get("frame_time_rel")!='' and packet.get("seq")!='' :
+            elif packet.get("ip_dest")=="10.0.0.2" and packet.get("frame_time_rel")!='' and packet.get("seq")!='' :
                 # we care about this Data packet
                 # update max seq information
                 ackPkt = False

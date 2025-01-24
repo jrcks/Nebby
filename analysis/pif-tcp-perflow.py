@@ -38,7 +38,7 @@ def process_flows(cc, dir):
         total_bytes=0
         '''
         Flow tracking:
-        o Identify all packets that are either sourced from or headed to 100.64.0.2
+        o Identify all packets that are either sourced from or headed to 10.0.0.2
         o Group different flows by client's port
         '''
         flows={}
@@ -53,9 +53,9 @@ def process_flows(cc, dir):
                 continue
             if data_sent == 0 : 
                 if len(port_set) < 2:
-                    if "100.64.0." in packet.get("ip_src") :    
+                    if "10.0.0." in packet.get("ip_src") :    
                         port_set.add(packet.get("ip_src"))
-                    if "100.64.0." in packet.get("ip_dest") :
+                    if "10.0.0." in packet.get("ip_dest") :
                         port_set.add(packet.get("ip_dest"))
                     continue
                 else :
