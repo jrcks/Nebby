@@ -6,7 +6,6 @@ set -e
 # Install git and mahimahi dependencies
 DEPS="
     git
-    # === mahimahi dependencies === #
     protobuf-compiler
     libprotobuf-dev
     autotools-dev

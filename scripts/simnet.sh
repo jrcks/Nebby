@@ -1,45 +1,43 @@
 #!/bin/bash
 
 # Check if the required parameters are provided
-if [ $# -ne 6 ]; then
-    echo "Usage: $0 <congestion_control> <predelay_ms> <postdelay_ms> <bandwidth_kbps> <buffer_size> <link>"
+if [ $# -ne 8 ]; then
+    echo "Usage: $0 <cca> <predelay> <postdelay> <bandwidth> <buffer_size> <link> <dump> <output_dir>"
     exit 1
 fi
 
 # Assign input parameters to meaningful variable names
-cc="$1"
-predelay_ms="$2"
-postdelay_ms="$3"
-bandwidth_kbps="$4"
+cca="$1"
+predelay="$2"
+postdelay="$3"
+bandwidth="$4"
 buffer_size="$5"
 link="$6"
-
-# Output file for the trace
-dump="test.pcap"
+dump="$7"
+output_dir="$8"
 
 # Calculate Buffer Delay Product (BDP) in bytes
-total_delay_ms=$((predelay_ms + postdelay_ms))
-bdp=$(($total_delay_ms * bandwidth_kbps * buffer_size / 4))
+total_delay_ms=$((predelay + postdelay))
+bdp=$(($total_delay_ms * bandwidth * buffer_size / 4))
 echo "Calculated BDP: $bdp bytes"
 
 # Print parameters for debugging
-echo "Congestion Control: $cc"
-echo "Predelay: $predelay_ms ms"
-echo "Postdelay: $postdelay_ms ms"
-echo "Bandwidth: $bandwidth_kbps kbps"
+echo "Congestion Control: $cca"
+echo "Predelay: $predelay ms"
+echo "Postdelay: $postdelay ms"
+echo "Bandwidth: $bandwidth kbps"
 echo "Buffer Size (1 BDP): $bdp bytes"
 
 # Set Buffer AQM (Active Queue Management) type
 aqm="droptail"
 
 # Define trace file location
-trace_dir="../traces"
-trace_file="$trace_dir/bw.trace"
+trace_file="$output_dir/bw.trace"
 
-# Check if the trace directory exists, create it if not
-if [ ! -d "$trace_dir" ]; then
-    mkdir -p "$trace_dir"
-    echo "Created directory: $trace_dir"
+# Check if the output directory exists, create it if not
+if [ ! -d "$output_dir" ]; then
+    mkdir -p "$output_dir"
+    echo "Created directory: $output_dir"
 fi
 
 # Create or clear the bandwidth trace file
@@ -47,7 +45,7 @@ rm -f "$trace_file"
 touch "$trace_file"
 
 # Number of entries for the bandwidth trace
-num_entries=$(($bandwidth_kbps / 12))
+num_entries=$(($bandwidth / 12))
 
 # Generate bandwidth trace entries
 for ((i = 1; i <= num_entries; i++)); do
@@ -55,7 +53,7 @@ for ((i = 1; i <= num_entries; i++)); do
 done
 
 # Execute the bandwidth test with specified parameters
-mm-delay "$predelay_ms" ./btl.sh "$dump" "$postdelay_ms" "$bdp" "$aqm" "$cc" "$link"
+mm-delay "$predelay" ./btl.sh "$dump" "$postdelay" "$bdp" "$aqm" "$cca" "$link" "$output_dir"
 
 # Stop the mm-delay command
 sudo killall mm-delay
