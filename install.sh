@@ -36,7 +36,8 @@ cd mahimahi || {
 
 # Run the installation steps
 ./autogen.sh || {
-    # Somehow autogen.sh always fails on the first run, so we try harder
+    # ltmain.sh is wrongly in the parent dir, not sure how to fix this
+    rm ../ltmain.sh
     libtoolize --install --copy
     ./autogen.sh
 }
