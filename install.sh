@@ -6,6 +6,7 @@ set -e
 # Install git and mahimahi dependencies
 DEPS="
     git
+    tshark
     protobuf-compiler
     libprotobuf-dev
     autotools-dev

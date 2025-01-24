@@ -25,7 +25,7 @@ file_name=$6
 pcap_file="$output_dir/test.pcap"
 
 # Clean previous results
-./clean.sh
+./clean.sh 2>/dev/null
 
 # Create output directory if it doesn't exist
 if [ ! -d "$output_dir" ]; then
@@ -54,10 +54,9 @@ fi
 echo "Converting received data to .csv format"
 
 # Create separate traces for TCP and UDP traffic
-# Note: The output CSV for TCP traffic includes specific fields.
+# Note: -o "gui.column.format:\"Time\",\"%Aut\"" is ommitted as it causes an error
 tshark -r "$pcap_file" -T fields \
-    -o "gui.column.format:\"Time\",\"%Aut\"" \
-    -e _ws.col.Time \
+    -e _ws.col.cls_time \
     -e frame.time_relative \
     -e tcp.time_relative \
     -e frame.number \
@@ -75,7 +74,7 @@ tshark -r "$pcap_file" -T fields \
     -E occurrence=f >"$output_dir/$cca-tcp.csv"
 
 # Capture UDP traffic
-tshark -r "$pcap_file" -f "udp" -T fields -E header=y -E separator=, -E quote=d >"$output_dir/$cca-udp.csv"
+tshark -r "$pcap_file" -Y "udp" -E header=y -E separator=, -E quote=d >"$output_dir/$cca-udp.csv"
 
 # Delete PCAP file if the parameter is True
 if [ "$delete_pcap_file" == "True" ]; then
@@ -83,7 +82,7 @@ if [ "$delete_pcap_file" == "True" ]; then
 fi
 
 # Log the completion of the conversion
-echo "Conversion completed: $output_dir/${pcap_file}-tcp.csv and $output_dir/${pcap_file}-udp.csv generated."
+echo "Conversion completed: ${pcap_file}-tcp.csv and ${pcap_file}-udp.csv generated."
 
 # Remove residual index files
 # rm -f index*

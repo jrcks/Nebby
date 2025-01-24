@@ -52,8 +52,11 @@ for ((i = 1; i <= num_entries; i++)); do
     echo $(((i * 1000) / num_entries)) >>"$trace_file"
 done
 
+# Enable IP forwarding
+sudo sysctl -w net.ipv4.ip_forward=1
+
 # Execute the bandwidth test with specified parameters
 mm-delay "$predelay" ./btl.sh "$dump" "$postdelay" "$bdp" "$aqm" "$cca" "$link" "$output_dir"
 
 # Stop the mm-delay command
-sudo killall mm-delay
+sudo killall mm-delay 2>/dev/null
