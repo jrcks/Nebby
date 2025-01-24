@@ -1,4 +1,6 @@
 #!/bin/bash
+
+# Configuration Variables
 domain="google.com"
 link="www.google.com"
 postdelays="50"
@@ -6,19 +8,25 @@ predelays="0"
 linkspeeds="200 1000"
 buffsizes="2"
 
+# Loop through parameters
 for predelay in $predelays; do
     for postdelay in $postdelays; do
         for linkspeed in $linkspeeds; do
             for buffsize in $buffsizes; do
-                name=$domain-$predelay-$postdelay-$linkspeed-$buffsize
+                # Constructing the test name
+                test_name="${domain}-${predelay}-${postdelay}-${linkspeed}-${buffsize}"
                 echo "==================="
-                echo $name
+                echo "$test_name"
                 echo "==================="
-                echo $link
+                echo "$link"
                 echo "==================="
-                ./run_test.sh $name $predelay $postdelay $linkspeed $buffsize $link
+
+                # Running the test
+                ../run_test.sh "$test_name" "$predelay" "$postdelay" "$linkspeed" "$buffsize" "$link"
                 sleep 1
-                ./clean.sh
+
+                # Cleaning up
+                ../clean.sh
                 sleep 1
             done
         done
