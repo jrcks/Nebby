@@ -20,6 +20,7 @@ DEPS="
     libxcb-present-dev
     libcairo2-dev
     libpango1.0-dev
+    apache2-dev
 "
 
 # Update package list and install dependencies
@@ -34,10 +35,15 @@ cd mahimahi || {
 }
 
 # Run the installation steps
-./autogen.sh
+./autogen.sh || {
+    # Somehow autogen.sh always fails on the first run, so we try harder
+    libtoolize --install --copy
+    ./autogen.sh
+}
 ./configure
 make
 sudo make install
+cd ..
 
 # Mark scripts as executable
 FILES="
@@ -48,7 +54,7 @@ FILES="
     ./scripts/run_test.sh
     ./scripts/simnet.sh
 "
-sudo chmod +x $FILES
+chmod +x $FILES
 
 # Echo success message
 echo "Installation completed successfully!"
