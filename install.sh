@@ -8,6 +8,7 @@ DEPS="
     git
     tshark
     python3-matplotlib
+    python3-pandas
     protobuf-compiler
     libprotobuf-dev
     autotools-dev
