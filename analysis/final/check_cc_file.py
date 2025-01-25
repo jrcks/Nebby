@@ -3,6 +3,7 @@ post_i=2
 bw_i=3
 bf_i=4
 
+import os
 import sys
 import csv
 import matplotlib.pyplot as plt
@@ -532,8 +533,11 @@ def checkBBR(files,p="n"):
                 else:
                     classi.append("MAYBE BBR")
         except Exception as ex:  
-            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-            message = template.format(type(ex).__name__, ex.args)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            lineno = exc_tb.tb_lineno
+            template = "An exception of type {0} occurred at {1}:{2} Arguments:\n{3!r}"
+            message = template.format(type(ex).__name__, fname, lineno, ex.args)
             new_message = "NC " + message
             classi.append(new_message)
     return classi
