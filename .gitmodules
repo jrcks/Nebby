@@ -1,3 +1,6 @@
 [submodule "HARExportTrigger"]
 	path = selenium/HARExportTrigger
 	url = git@github.com:firefox-devtools/har-export-trigger.git
+[submodule "mahimahi"]
+	path = mahimahi
+	url = git@github.com:ravinet/mahimahi.git

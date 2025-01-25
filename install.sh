@@ -7,6 +7,7 @@ set -e
 DEPS="
     git
     tshark
+    python3-matplotlib
     protobuf-compiler
     libprotobuf-dev
     autotools-dev
@@ -29,13 +30,7 @@ sudo apt update
 sudo apt install -y $DEPS
 
 # Install mahimahi as per http://mahimahi.mit.edu/
-git clone https://github.com/ravinet/mahimahi
-cd mahimahi || {
-    echo "Failed to clone mahimahi."
-    exit 1
-}
-
-# Run the installation steps
+cd mahimahi
 ./autogen.sh || {
     # ltmain.sh is wrongly in the parent dir, not sure how to fix this
     rm ../ltmain.sh
