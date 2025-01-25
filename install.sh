@@ -9,6 +9,7 @@ DEPS="
     tshark
     python3-matplotlib
     python3-pandas
+    python3-sklearn
     protobuf-compiler
     libprotobuf-dev
     autotools-dev
