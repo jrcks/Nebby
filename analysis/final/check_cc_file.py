@@ -113,6 +113,11 @@ def plot_one_bt(f, p,t=1):
         plot_d(ax, time, data, "b", "Smoothened",alpha=0.5)
         ax.legend()
 #             plt.savefig("./plots/"+f+".png")
+        # A Bug in matplotlib 3.10.0 causes the plot to crash when mouse hovering
+        #   https://github.com/matplotlib/matplotlib/issues/29350
+        #   Fixed in matplotlib v3.10.1 (which is not yet released)
+        #   Or fixed with pygobject >= 3.47.0 (which is not available on Ubuntu 22.04)
+        #   Workaround: pip install matplotlib==3.9.4
         plt.show()
 #     return time, data, grad_time, grad_data, rtt
 #     print("Black : OOA, Green : DA, Magenta : RP")
