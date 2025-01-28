@@ -77,7 +77,7 @@ tshark -r "$pcap_file" -T fields \
     -E header=y \
     -E separator=, \
     -E quote=d \
-    -E occurrence=f >"$output_dir/$cca-tcp.csv"
+    -E occurrence=f >"$output_dir/$cca-$predelay-$postdelay-$bandwidth-$buffer_size-tcp.csv"
 
 # Capture UDP traffic
 tshark -r "$pcap_file" -Y "udp" -E header=y -E separator=, -E quote=d >"$output_dir/$cca-udp.csv"
