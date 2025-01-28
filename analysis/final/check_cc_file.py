@@ -203,7 +203,7 @@ def process_flows(cc, dir,p="y"):
         total_bytes=0
         '''
         Flow tracking:
-        o Identify all packets that are either sourced from or headed to 10.0.0.2
+        o Identify all packets that are either sourced from or headed to 10.0.0.X or 100.64.0.X
         o Group different flows by client's port
         '''
         flows={}
@@ -230,12 +230,12 @@ def process_flows(cc, dir,p="y"):
                 line_count+=1
                 continue
             if data_sent == 0 : 
-                if "10.0.0." in packet.get("ip_src"):
+                if "10.0.0." in packet.get("ip_src") or "100.64.0." in packet.get("ip_src"):
                     num = int(packet.get("ip_src")[-1])
                     if num%2==0:
                         data_sent=1
                         host_port=packet.get("ip_src")
-                if "10.0.0." in packet.get("ip_dest"):
+                if "10.0.0." in packet.get("ip_dest") or "100.64.0." in packet.get("ip_dest"):
                     num = int(packet.get("ip_dest")[-1])
                     if num%2==0:
                         data_sent=1
