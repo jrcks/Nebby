@@ -88,6 +88,9 @@ def plot_one_bt(f, p,t=1):
     pre = int(fs[1])
     post = int(fs[2])
     rtt = float(((pre+post)*2))/1000
+    
+    print("Pre=",pre," Post=",post," RTT=",rtt, sep="")
+    
     ax = 0
     if t==1:
         data, time, retrans = get_window(f,"n",t)
@@ -928,9 +931,12 @@ import pickle
 # Assumes that these files are located in the same directory as the script
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
+print("")
+print("Pickle Version Warnings:")
 scaled_vals = pickle.load(open(script_dir + "/scaled_vals.txt","rb"))
 classifiers = pickle.load(open(script_dir + "/classifiers.txt","rb"))
 count_to_mp = pickle.load(open(script_dir + "/count_to_mp.txt","rb"))
+print("")
 
 cc_degree = {'bic': 1,
  'dctcp': 2,
@@ -977,7 +983,7 @@ estimates = clf.predict([scaled_web_data[degree]['data'][0]])
 prob = clf.predict_proba([scaled_web_data[degree]['data'][0]])
 cc_predict = [count_to_mp[degree][i] for i in estimates]
 
-print(cc_predict[0].upper())
+print("CC Prediction Result:", cc_predict[0].upper())
 
 exit()
 
