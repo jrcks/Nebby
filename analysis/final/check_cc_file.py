@@ -6,6 +6,7 @@ bf_i=4
 import os
 import sys
 import csv
+import traceback
 import matplotlib.pyplot as plt
 import math
 
@@ -490,6 +491,12 @@ def checkBBR(files,p="n"):
     for f in files:
         file_name = f.split("/")[-1]
         para = file_name.split("-")
+        if(len(para) < 5):
+            classi.append("NC Not Enough Parameters in File Name\n  Required : [algo]-[pre]-[post]-[bw]-[bf]-tcp.csv\n  Found : "+file_name)
+            continue
+        if (len(para) > 6):
+            print("Potential extra Parameters in File Name\n  Required : [algo]-[pre]-[post]-[bw]-[bf]-tcp.csv\n  Found : "+file_name)
+        
         rtt = int(para[2])*2
         bw = int(para[3])
         bf = int(para[4])
@@ -497,9 +504,16 @@ def checkBBR(files,p="n"):
         if bw == 1000 :
             l=5
             r=15
-        if bw == 200:
+        elif bw == 200:
             l=10
             r=20
+        else:
+            print("RTT=",rtt," BW=",bw," BF=",bf," BDP=",bdp, sep="")
+            classi.append("NC Invalid Bandwidth")
+            continue
+        
+        print("RTT=",rtt," BW=",bw," BF=",bf," BDP=",bdp, " L=", l, " R=", r, sep="")
+        
         try:
             time, data, retrans,rtt = plot_one_bt(f,p=p,t=1)
             probe_index = getProbes(time, data, rtt, bdp, bw)
@@ -539,6 +553,7 @@ def checkBBR(files,p="n"):
             template = "An exception of type {0} occurred at {1}:{2} Arguments:\n{3!r}"
             message = template.format(type(ex).__name__, fname, lineno, ex.args)
             new_message = "NC " + message
+            print(traceback.format_exc())
             classi.append(new_message)
     return classi
 
@@ -553,6 +568,13 @@ def print_red(time,data,probe_index):
     for p in probe_index:
         ax.plot(time[p[0]:p[1]+1], data[p[0]:p[1]+1], color='r', lw=2)
     plt.show()
+
+if (len(sys.argv) < 3):
+    print("Usage: python3 check_cc_file.py file_path printOn")
+    print("Filename should be of the form [algo]-[pre]-[post]-[bw]-[bf]-tcp.csv")
+    print("<algo-descriptor> <pre-ow-delay> <post-ow-delay> <bottleneck linkspeed in Kbps> <Buffer size in BDP>")
+    print("printOn : y/n")
+    exit()
 
 file=sys.argv[1]
 printOn=sys.argv[2]
