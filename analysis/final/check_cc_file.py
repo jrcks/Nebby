@@ -821,7 +821,7 @@ def get_feature_degree_R(files,ss=225,p='n',ft_thresh=3,max_deg=MAX_DEG):
         "max_deg":max_deg,
         "p_net":p_net,
         "mse_l":mse_l
-    }
+        }
     return mp
 
 from statistics import mean 
