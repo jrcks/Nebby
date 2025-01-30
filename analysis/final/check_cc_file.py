@@ -6,6 +6,7 @@ bf_i=4
 import os
 import sys
 import csv
+import traceback
 import matplotlib.pyplot as plt
 import math
 
@@ -87,6 +88,9 @@ def plot_one_bt(f, p,t=1):
     pre = int(fs[1])
     post = int(fs[2])
     rtt = float(((pre+post)*2))/1000
+    
+    print("Pre=",pre," Post=",post," RTT=",rtt, sep="")
+    
     ax = 0
     if t==1:
         data, time, retrans = get_window(f,"n",t)
@@ -112,6 +116,11 @@ def plot_one_bt(f, p,t=1):
         plot_d(ax, time, data, "b", "Smoothened",alpha=0.5)
         ax.legend()
 #             plt.savefig("./plots/"+f+".png")
+        # A Bug in matplotlib 3.10.0 causes the plot to crash when mouse hovering
+        #   https://github.com/matplotlib/matplotlib/issues/29350
+        #   Fixed in matplotlib v3.10.1 (which is not yet released)
+        #   Or fixed with pygobject >= 3.47.0 (which is not available on Ubuntu 22.04)
+        #   Workaround: pip install matplotlib==3.9.4
         plt.show()
 #     return time, data, grad_time, grad_data, rtt
 #     print("Black : OOA, Green : DA, Magenta : RP")
@@ -121,6 +130,7 @@ def plot_one_bt(f, p,t=1):
 def get_time_features(retrans,time,rtt):
     time_thresh = 20*rtt
     features = []
+    print("Retrans",retrans)
     for i in range(1, len(retrans)):
         if retrans[i]-retrans[i-1] >= time_thresh:
             features.append([retrans[i-1], retrans[i]])
@@ -151,8 +161,12 @@ def get_features(time, features):
 
 def get_plot_features(curr_file, p):
     time, data, retrans, rtt = plot_one_bt(curr_file,p=p,t=1)
+    print("PlottedOneBT")
+    print("Time:",len(time),"Data:",len(data),"Retrans:",len(retrans), "RTT:",rtt)
     time_features = get_time_features(retrans,time,rtt)
+    print("Time Features",time_features)
     features = get_features(time, time_features)    
+    print("Features",features)
     if p == 'y':
         fig, ax = plt.subplots(1,1, figsize=(15,8))
         plot_d(ax, time, data, "b", "Smoothened")
@@ -203,7 +217,7 @@ def process_flows(cc, dir,p="y"):
         total_bytes=0
         '''
         Flow tracking:
-        o Identify all packets that are either sourced from or headed to 10.0.0.2
+        o Identify all packets that are either sourced from or headed to 10.0.0.X or 100.64.0.X
         o Group different flows by client's port
         '''
         flows={}
@@ -230,12 +244,12 @@ def process_flows(cc, dir,p="y"):
                 line_count+=1
                 continue
             if data_sent == 0 : 
-                if "10.0.0." in packet.get("ip_src"):
+                if "10.0.0." in packet.get("ip_src") or "100.64.0." in packet.get("ip_src"):
                     num = int(packet.get("ip_src")[-1])
                     if num%2==0:
                         data_sent=1
                         host_port=packet.get("ip_src")
-                if "10.0.0." in packet.get("ip_dest"):
+                if "10.0.0." in packet.get("ip_dest") or "100.64.0." in packet.get("ip_dest"):
                     num = int(packet.get("ip_dest")[-1])
                     if num%2==0:
                         data_sent=1
@@ -490,6 +504,12 @@ def checkBBR(files,p="n"):
     for f in files:
         file_name = f.split("/")[-1]
         para = file_name.split("-")
+        if(len(para) < 5):
+            classi.append("NC Not Enough Parameters in File Name\n  Required : [algo]-[pre]-[post]-[bw]-[bf]-tcp.csv\n  Found : "+file_name)
+            continue
+        if (len(para) > 6):
+            print("Potential extra Parameters in File Name\n  Required : [algo]-[pre]-[post]-[bw]-[bf]-tcp.csv\n  Found : "+file_name)
+        
         rtt = int(para[2])*2
         bw = int(para[3])
         bf = int(para[4])
@@ -497,9 +517,16 @@ def checkBBR(files,p="n"):
         if bw == 1000 :
             l=5
             r=15
-        if bw == 200:
+        elif bw == 200:
             l=10
             r=20
+        else:
+            print("RTT=",rtt," BW=",bw," BF=",bf," BDP=",bdp, sep="")
+            classi.append("NC Invalid Bandwidth")
+            continue
+        
+        print("RTT=",rtt," BW=",bw," BF=",bf," BDP=",bdp, " L=", l, " R=", r, sep="")
+        
         try:
             time, data, retrans,rtt = plot_one_bt(f,p=p,t=1)
             probe_index = getProbes(time, data, rtt, bdp, bw)
@@ -539,6 +566,7 @@ def checkBBR(files,p="n"):
             template = "An exception of type {0} occurred at {1}:{2} Arguments:\n{3!r}"
             message = template.format(type(ex).__name__, fname, lineno, ex.args)
             new_message = "NC " + message
+            print(traceback.format_exc())
             classi.append(new_message)
     return classi
 
@@ -553,6 +581,13 @@ def print_red(time,data,probe_index):
     for p in probe_index:
         ax.plot(time[p[0]:p[1]+1], data[p[0]:p[1]+1], color='r', lw=2)
     plt.show()
+
+if (len(sys.argv) < 3):
+    print("Usage: python3 check_cc_file.py file_path printOn")
+    print("Filename should be of the form [algo]-[pre]-[post]-[bw]-[bf]-tcp.csv")
+    print("<algo-descriptor> <pre-ow-delay> <post-ow-delay> <bottleneck linkspeed in Kbps> <Buffer size in BDP>")
+    print("printOn : y/n")
+    exit()
 
 file=sys.argv[1]
 printOn=sys.argv[2]
@@ -897,9 +932,16 @@ if len(too_much_error.keys())>1:
 
 #importing important data
 import pickle
-scaled_vals = pickle.load(open("scaled_vals.txt","rb"))
-classifiers = pickle.load(open("classifiers.txt","rb"))
-count_to_mp = pickle.load(open("count_to_mp.txt","rb"))
+
+# Assumes that these files are located in the same directory as the script
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
+print("")
+print("Pickle Version Warnings:")
+scaled_vals = pickle.load(open(script_dir + "/scaled_vals.txt","rb"))
+classifiers = pickle.load(open(script_dir + "/classifiers.txt","rb"))
+count_to_mp = pickle.load(open(script_dir + "/count_to_mp.txt","rb"))
+print("")
 
 cc_degree = {'bic': 1,
  'dctcp': 2,
@@ -946,7 +988,7 @@ estimates = clf.predict([scaled_web_data[degree]['data'][0]])
 prob = clf.predict_proba([scaled_web_data[degree]['data'][0]])
 cc_predict = [count_to_mp[degree][i] for i in estimates]
 
-print(cc_predict[0].upper())
+print("CC Prediction Result:", cc_predict[0].upper())
 
 exit()
 

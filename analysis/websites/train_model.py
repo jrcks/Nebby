@@ -78,12 +78,12 @@ def process_flows(cc, dir,p="y"):
                 line_count+=1
                 continue
             if data_sent == 0 : 
-                if "10.0.0." in packet.get("ip_src"):
+                if "10.0.0." in packet.get("ip_src") or "100.64.0." in packet.get("ip_src"):
                     num = int(packet.get("ip_src")[-1])
                     if num%2==0:
                         data_sent=1
                         host_port=packet.get("ip_src")
-                if "10.0.0." in packet.get("ip_dest"):
+                if "10.0.0." in packet.get("ip_dest") or "100.64.0." in packet.get("ip_dest"):
                     num = int(packet.get("ip_dest")[-1])
                     if num%2==0:
                         data_sent=1

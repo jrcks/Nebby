@@ -72,6 +72,7 @@ def process_flows(cc, dir):
                 continue
             ackPkt = True
             port="null"
+            #! 10.0.0.2 IP HARDCODED
             if packet.get("ip_src")=="10.0.0.2" and packet.get("frame_time_rel")!='' and packet.get("ack")!='': 
                 # we care about this ACK packet
                 # update max ACK information
@@ -89,6 +90,7 @@ def process_flows(cc, dir):
                     if int(packet.get("seq")) < flows[port]["max_seq"]:
                         reTx += int(packet.get("tcp_len"))
                     
+            #! 10.0.0.2 IP HARDCODED
             elif packet.get("ip_dest")=="10.0.0.2" and packet.get("frame_time_rel")!='' and packet.get("seq")!='' :
                 # we care about this Data packet
                 # update max seq information

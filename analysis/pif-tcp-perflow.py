@@ -53,9 +53,9 @@ def process_flows(cc, dir):
                 continue
             if data_sent == 0 : 
                 if len(port_set) < 2:
-                    if "10.0.0." in packet.get("ip_src") :    
+                    if "10.0.0." in packet.get("ip_src") or "100.64.0." in packet.get("ip_src"):    
                         port_set.add(packet.get("ip_src"))
-                    if "10.0.0." in packet.get("ip_dest") :
+                    if "10.0.0." in packet.get("ip_dest") or "100.64.0." in packet.get("ip_dest"):
                         port_set.add(packet.get("ip_dest"))
                     continue
                 else :
