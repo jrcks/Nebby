@@ -672,7 +672,7 @@ def getRed_R(files,ss=125,p="y", ft_thresh=100):
         v = f_split[0]
         rtt = float((int(f_split[pre_i]) + int(f_split[post_i]))*2)/1000
         bdp = float(rtt*1000*int(f_split[bw_i])*int(f_split[bf_i]))/8
-        print("RTT",rtt,"BDP",bdp, "tag",v)
+        print("RTT=",rtt," BDP=",bdp, " Tag=",v, sep="")
         time, data, features = get_plot_features(curr_file, p=p)
         count = 1
         print("Features",features)
@@ -916,7 +916,7 @@ def getBestDegree(nmp, p="y"):
     #         deg = mse_l.index(min(mse_l[0:2]))+1
     #     print(deg)
         current_cc = name.split("-")[0]
-        results[current_cc]={
+        results[current_cc] = {
             'deg':deg,
             'coeff':p_net[deg-1],
             'error':errors[deg-1]
@@ -929,7 +929,7 @@ def getBestDegree(nmp, p="y"):
 print("Getting feature degree R for ", file)
 
 web_mp = get_feature_degree_R([file],ss=225,p="n",ft_thresh=1,max_deg=3)
-if (len(web_mp.keys())<1):
+if (len(web_mp.keys()) < 1):
     print("NAN","web_mp empty")
     exit()
 web_cc_mp, too_much_error = getBestDegree(web_mp,p=printOn)
@@ -949,7 +949,8 @@ scaled_vals = pickle.load(open(script_dir + "/scaled_vals.txt","rb"))
 classifiers = pickle.load(open(script_dir + "/classifiers.txt","rb"))
 count_to_mp = pickle.load(open(script_dir + "/count_to_mp.txt","rb"))
 
-cc_degree = {'bic': 1,
+cc_degree = {
+ 'bic': 1,
  'dctcp': 2,
  'highspeed': 2,
  'htcp': 3,
@@ -960,7 +961,8 @@ cc_degree = {'bic': 1,
  'yeah': 1,
  'cubic': 3,
  'reno': 2,
-'cubicQ':3}
+ 'cubicQ':3
+}
 
 web_data = {}
 scaled_web_data = {}
@@ -997,7 +999,3 @@ cc_predict = [count_to_mp[degree][i] for i in estimates]
 print("CC Prediction Result:", cc_predict[0].upper())
 
 exit()
-
-
-
-
