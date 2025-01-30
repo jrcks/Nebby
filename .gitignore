@@ -1,6 +1,6 @@
-#ignore all log files
+# Ignore all log files and old measurements
 logs/
 measurements/*
-scripts/_*
-.i*
-.v*
+
+# Ignore installation files in sub-modules
+mahimahi/
