@@ -4,12 +4,13 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <pthread.h>
 #include <errno.h>
 
-#define PORT 8083
+#define PORT 8080
 #define BUFFSIZE (150 * 1024)
 #define SA struct sockaddr
 
@@ -30,7 +31,7 @@ void receive_data(int connfd, int flow_size)
 
     // Receive data from the client
     int bytes_recv = 0;
-    while (true)
+    while (1)
     {
         // Receive data from the client
         int num_bytes = recv(connfd, buff + bytes_recv, BUFFSIZE, 0);
@@ -68,14 +69,14 @@ void parse_args(int argc, char *argv[], int *num_flow, int *flow_size, char *con
     if (argc < 2)
     {
         // Default number of flows is 100
-        num_flow = 100;
+        *num_flow = 100;
     }
     else
     {
-        num_flow = atoi(argv[1]);
+        *num_flow = atoi(argv[1]);
 
         // Validate the number of flows is a positive integer
-        if (num_flow <= 0)
+        if (*num_flow <= 0)
         {
             perror("Please enter a valid value for the number of flows.\n");
             exit(EXIT_FAILURE);
@@ -86,7 +87,7 @@ void parse_args(int argc, char *argv[], int *num_flow, int *flow_size, char *con
     if (argc < 2)
     {
         // Default flow size is 80 KB
-        flow_size = 80 * 1024;
+        *flow_size = 80 * 1024;
     }
     else
     {
@@ -97,7 +98,7 @@ void parse_args(int argc, char *argv[], int *num_flow, int *flow_size, char *con
             exit(EXIT_FAILURE);
         }
         fseek(fp, 0L, SEEK_END);
-        flow_size = ftell(fp); // Use the file size as the flow size
+        *flow_size = ftell(fp); // Use the file size as the flow size
         fclose(fp);
     }
 

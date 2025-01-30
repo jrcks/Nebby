@@ -48,41 +48,17 @@ void check_file_exist(const char *filename)
         }
 
         // Write the header to the stats file
-        fprintf(tmp,
-                "flow_id\t
-                ts(seconds.nanoseconds)\t\
-                tcpi_state\t\
-                tcpi_ca_state\t\
-                tcpi_retransmits\t\
-                tcpi_probes\t\
-                tcpi_backoff\t\
-                tcpi_options\t\
-                tcpi_snd_wscale\t\
-                tcpi_rcv_wscale\t\
-                tcpi_rto\t\
-                tcpi_ato\t\
-                tcpi_snd_mss\t\
-                tcpi_rcv_mss\t\
-                tcpi_unacked\t\
-                tcpi_sacked\t\
-                tcpi_lost\t\
-                tcpi_retrans\t\
-                tcpi_fackets\t\
-                tcpi_last_data_sent\t\
-                tcpi_last_ack_sent\t\
-                tcpi_last_data_recv\t\
-                tcpi_last_ack_recv\t\
-                tcpi_pmtu\t\
-                tcpi_rcv_ssthresh\t\
-                tcpi_rtt\t\
-                tcpi_rttvar\t\
-                tcpi_snd_ssthresh\t\
-                tcpi_snd_cwnd\t\
-                tcpi_advmss\t\
-                tcpi_reordering\t\
-                tcpi_rcv_rtt\t\
-                tcpi_rcv_space\t\
-                tcpi_total_retrans\n");
+        fprintf(file, "flow_id\tts(seconds.nanoseconds)\ttcpi_state\ttcpi_ca_state\t"
+                      "tcpi_retransmits\ttcpi_probes\ttcpi_backoff\ttcpi_options\t"
+                      "tcpi_snd_wscale\ttcpi_rcv_wscale\ttcpi_rto\ttcpi_ato\t"
+                      "tcpi_snd_mss\ttcpi_rcv_mss\ttcpi_unacked\ttcpi_sacked\t"
+                      "tcpi_lost\ttcpi_retrans\ttcpi_fackets\t"
+                      "tcpi_last_data_sent\ttcpi_last_ack_sent\t"
+                      "tcpi_last_data_recv\ttcpi_last_ack_recv\t"
+                      "tcpi_pmtu\ttcpi_rcv_ssthresh\ttcpi_rtt\ttcpi_rttvar\t"
+                      "tcpi_snd_ssthresh\ttcpi_snd_cwnd\ttcpi_advmss\t"
+                      "tcpi_reordering\ttcpi_rcv_rtt\ttcpi_rcv_space\t"
+                      "tcpi_total_retrans\n");
 
         fclose(file);
     }
@@ -166,7 +142,7 @@ void parse_args(int argc, char *argv[], int *num_flow, int *flow_size, char *con
 }
 
 // Thread function to record TCP statistics
-void thread_recording(void *arg)
+void *thread_recording(void *arg)
 {
     // Initialize the recording structure
     struct Thread_Record_Struct *rec_struct = (struct Thread_Record_Struct *)arg;
@@ -271,7 +247,8 @@ int main(int argc, char *argv[])
         }
 
         // Prepare thread structure for recording
-        struct Thread_Record_Struct thread_record_struct = {.sockfd = sockfd};
+        struct Thread_Record_Struct thread_record_struct = {sockfd = sockfd};
+        struct Recording_elem *recording_elems = thread_record_struct.recording_elems;
         pthread_t tid;
 
         // Create the thread for recording TCP statistics
