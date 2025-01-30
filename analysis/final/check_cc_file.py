@@ -130,6 +130,7 @@ def plot_one_bt(f, p,t=1):
 def get_time_features(retrans,time,rtt):
     time_thresh = 20*rtt
     features = []
+    print("Retrans",retrans)
     for i in range(1, len(retrans)):
         if retrans[i]-retrans[i-1] >= time_thresh:
             features.append([retrans[i-1], retrans[i]])
@@ -160,8 +161,12 @@ def get_features(time, features):
 
 def get_plot_features(curr_file, p):
     time, data, retrans, rtt = plot_one_bt(curr_file,p=p,t=1)
+    print("PlottedOneBT")
+    print("Time:",len(time),"Data:",len(data),"Retrans:",len(retrans), "RTT:",rtt)
     time_features = get_time_features(retrans,time,rtt)
+    print("Time Features",time_features)
     features = get_features(time, time_features)    
+    print("Features",features)
     if p == 'y':
         fig, ax = plt.subplots(1,1, figsize=(15,8))
         plot_d(ax, time, data, "b", "Smoothened")
