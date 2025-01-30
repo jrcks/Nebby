@@ -130,7 +130,7 @@ def plot_one_bt(f, p,t=1):
 def get_time_features(retrans,time,rtt):
     time_thresh = 20*rtt
     features = []
-    print("Retrans",retrans)
+    #print("Retrans",retrans)
     for i in range(1, len(retrans)):
         if retrans[i]-retrans[i-1] >= time_thresh:
             features.append([retrans[i-1], retrans[i]])
@@ -161,7 +161,6 @@ def get_features(time, features):
 
 def get_plot_features(curr_file, p):
     time, data, retrans, rtt = plot_one_bt(curr_file,p=p,t=1)
-    print("PlottedOneBT")
     print("Time:",len(time),"Data:",len(data),"Retrans:",len(retrans), "RTT:",rtt)
     time_features = get_time_features(retrans,time,rtt)
     print("Time Features",time_features)
@@ -592,21 +591,17 @@ if (len(sys.argv) < 3):
 file=sys.argv[1]
 printOn=sys.argv[2]
 classi = checkBBR([file],printOn)
-notBBR = 0
 
 if printOn == "y":
     print("...checking for BBR")
 
 if classi[0] == "YES BBR" or classi[0] == "MAYBE BBR" :
-    print("BBR")
+    print("CC Prediction Result: BBR")
+    exit()
 elif classi[0] == "NO BBR":
     print("NO BBR")
-    notBBR=1
 else :
     print("NAN",classi[0])
-
-if notBBR == 0:
-    exit()
 
 import bisect
 def lower_bound(arr, target):
@@ -677,8 +672,10 @@ def getRed_R(files,ss=125,p="y", ft_thresh=100):
         v = f_split[0]
         rtt = float((int(f_split[pre_i]) + int(f_split[post_i]))*2)/1000
         bdp = float(rtt*1000*int(f_split[bw_i])*int(f_split[bf_i]))/8
+        print("RTT",rtt,"BDP",bdp, "tag",v)
         time, data, features = get_plot_features(curr_file, p=p)
         count = 1
+        print("Features",features)
         for ft in features : 
             if count > ft_thresh:
                 break
@@ -796,6 +793,9 @@ def normalize(time, data, rtt, bdp):
 from statistics import mean 
 def get_feature_degree_R(files,ss=225,p='n',ft_thresh=3,max_deg=MAX_DEG):
     results = getRed_R(files,ss,p=p,ft_thresh=ft_thresh)
+    if (len(results) == 0):
+        print("get_feature_degree_R: No results found")
+        return {}
     count_features = 0
     mp = {}
     for item in results :
@@ -921,14 +921,23 @@ def getBestDegree(nmp, p="y"):
             'coeff':p_net[deg-1],
             'error':errors[deg-1]
         }
+    print("GetBestDegree Results",results)
+    print("GetBestDegree Too Much Error",too_much_error)
     return results, too_much_error
 
 
+print("Getting feature degree R for ", file)
+
 web_mp = get_feature_degree_R([file],ss=225,p="n",ft_thresh=1,max_deg=3)
+if (len(web_mp.keys())<1):
+    print("NAN","web_mp empty")
+    exit()
 web_cc_mp, too_much_error = getBestDegree(web_mp,p=printOn)
 
 if len(too_much_error.keys())>1:
     print("NAN","High error while fitting polynomial")
+    
+print("")
 
 #importing important data
 import pickle
@@ -936,12 +945,9 @@ import pickle
 # Assumes that these files are located in the same directory as the script
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-print("")
-print("Pickle Version Warnings:")
 scaled_vals = pickle.load(open(script_dir + "/scaled_vals.txt","rb"))
 classifiers = pickle.load(open(script_dir + "/classifiers.txt","rb"))
 count_to_mp = pickle.load(open(script_dir + "/count_to_mp.txt","rb"))
-print("")
 
 cc_degree = {'bic': 1,
  'dctcp': 2,
