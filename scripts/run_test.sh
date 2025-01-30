@@ -88,7 +88,7 @@ if [ "$delete_pcap_file" == "True" ]; then
 fi
 
 # Log the completion of the conversion
-echo "[run_test.sh] Conversion completed: ${pcap_file}-tcp.csv and ${pcap_file}-udp.csv generated."
+echo "[run_test.sh] Conversion completed: $cca-$predelay-$postdelay-$bandwidth-$buffer_size-tcp.csv and $cca-$predelay-$postdelay-$bandwidth-$buffer_size-udp.csv generated."
 
 # Remove residual index files
 # rm -f index*
