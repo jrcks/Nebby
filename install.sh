@@ -3,10 +3,11 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# Install git and mahimahi dependencies
+# Install nebby and mahimahi dependencies
 DEPS="
     git
     tshark
+    net-tools
     python3-matplotlib
     python3-pandas
     python3-sklearn
