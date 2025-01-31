@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
@@ -10,15 +11,16 @@
 #include <pthread.h>
 #include <errno.h>
 
-#define PORT 8080
+#define PORT 8081
 #define DEST_IP "127.0.0.1"
 #define BUFFSIZE (150 * 1024)
+#define OUT_FILE "/dev/null"
 #define SA struct sockaddr
 
 // Function to receive data from the server and store it in a file
 void receive_data(int connfd, int flow_size)
 {
-    // Enable TCP_QUICKACK option every connection to reduce acknowledgment latency
+    // Enable TCP_QUICKACK option to reduce acknowledgment latency
     int on = 1;
     if (setsockopt(connfd, IPPROTO_TCP, TCP_QUICKACK, (void *)&on, sizeof(on)) == -1)
     {
@@ -26,37 +28,43 @@ void receive_data(int connfd, int flow_size)
         exit(EXIT_FAILURE);
     }
 
-    // Buffer to store received data
-    char buff[flow_size];
-    bzero(buff, flow_size);
+    // Buffer to store received data temporarily
+    char buff[BUFFSIZE];
+    bzero(buff, sizeof(buff));
+
+    // Open the file for writing
+    FILE *fp = fopen(OUT_FILE, "w+");
+    if (fp == NULL)
+    {
+        perror("Error opening file for writing");
+        exit(EXIT_FAILURE);
+    }
 
     // Receive data from the server
     int bytes_recv = 0;
     while (1)
     {
         // Receive data from the server
-        int num_bytes = recv(connfd, buff + bytes_recv, BUFFSIZE, 0);
+        int num_bytes = recv(connfd, buff, sizeof(buff), 0);
         if (num_bytes == -1)
         {
-            perror("Receive Failed");
+            perror("Receive failed");
+            fclose(fp);
             exit(EXIT_FAILURE);
         }
         else if (num_bytes == 0)
         {
             break; // Connection has been closed by the server
         }
+
+        // Write received bytes to the file
+        fwrite(buff, 1, num_bytes, fp);
+        fflush(fp); // Ensure data is written to the file
+
         bytes_recv += num_bytes; // Update the total received byte count
     }
 
-    // Store the received data into a file
-    FILE *fp = fopen("new.html", "w+");
-    if (fp == NULL)
-    {
-        perror("Error opening file for writing");
-        exit(EXIT_FAILURE);
-    }
-    // Write the actual number of received bytes to the file
-    fwrite(buff, 1, bytes_recv, fp);
+    // Close the file
     fclose(fp);
 
     // Log the total number of bytes received
@@ -84,23 +92,22 @@ void parse_args(int argc, char *argv[], int *num_flow, int *flow_size, char *con
         }
     }
 
-    // Second argument is the file name to read the flow size from
-    if (argc < 2)
+    // Second argument is the flow size
+    if (argc < 3)
     {
         // Default flow size is 80 KB
         *flow_size = 80 * 1024;
     }
     else
     {
-        FILE *fp = fopen(argv[2], "r");
-        if (fp == NULL)
+        // Use the flow size provided
+        *flow_size = atoi(argv[2]);
+        if (*flow_size <= 0)
         {
-            perror("Error opening file");
+            perror("Please enter a valid value for the flow size.\n");
             exit(EXIT_FAILURE);
         }
-        fseek(fp, 0L, SEEK_END);
-        *flow_size = ftell(fp); // Use the file size as the flow size
-        fclose(fp);
+        
     }
 
     // Third argument is the congestion control algorithm
@@ -119,8 +126,6 @@ void parse_args(int argc, char *argv[], int *num_flow, int *flow_size, char *con
 // Main client function
 int main(int argc, char *argv[])
 {
-    int sockfd;
-    struct sockaddr_in servaddr;
     int num_flow, flow_size;
     char congestion_ctl[256];
 
@@ -128,10 +133,17 @@ int main(int argc, char *argv[])
     parse_args(argc, argv, &num_flow, &flow_size, congestion_ctl);
     printf("Number of flows: %d, Flow size: %d, Congestion control: %s\n", num_flow, flow_size, congestion_ctl);
 
-    for (int j = 0; j < num_flow; j++)
+    // Set up server address
+    struct sockaddr_in servaddr;
+    bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = inet_addr(DEST_IP);
+    servaddr.sin_port = htons(PORT);
+
+    for (int flow = 0; flow < num_flow; flow++)
     {
         // Create a new socket
-        sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd < 0)
         {
             perror("Socket creation failed");
@@ -139,46 +151,37 @@ int main(int argc, char *argv[])
         }
         printf("Socket successfully created..\n");
 
-        // Set up server address
-        bzero(&servaddr, sizeof(servaddr));
-        servaddr.sin_family = AF_INET;
-        servaddr.sin_addr.s_addr = inet_addr(DEST_IP);
-        servaddr.sin_port = htons(PORT);
+        // Set SO_LINGER option to control the behavior on shutdown
+        struct linger so_linger;
+        so_linger.l_onoff = 1;   // Enable SO_LINGER
+        so_linger.l_linger = 30; // Wait for 30 seconds for the connection to close
+        if (setsockopt(sockfd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger)) < 0)
+        {
+            perror("SO_LINGER failure");
+        }
 
         // Set TCP_NODELAY option to disable Nagle's algorithm
-        int on = 1;
-        if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (void *)&on, sizeof(on)) == -1)
+        if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int)) < 0)
         {
             perror("TCP_NODELAY failure");
         }
 
         // Clear TCP_CORK option for each connection
-        int off = 0;
-        if (setsockopt(sockfd, IPPROTO_TCP, TCP_CORK, (void *)&off, sizeof(off)) == -1)
+        if (setsockopt(sockfd, IPPROTO_TCP, TCP_CORK, &(int){0}, sizeof(int)) < 0)
         {
             perror("TCP_CORK failure");
         }
 
         // Set the receive buffer size to the defined value
-        int size = BUFFSIZE;
-        if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUFFORCE, (char *)&size, sizeof(size)) == -1)
+        if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
         {
             perror("SO_RCVBUF failure");
         }
 
         // Set the congestion control algorithm
-        if (setsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, (char *)congestion_ctl, sizeof(congestion_ctl)) != 0)
+        if (setsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, (char *)congestion_ctl, sizeof(congestion_ctl)) < 0)
         {
             perror("Congestion control algorithm specification error");
-        }
-
-        // Set SO_LINGER option to control the behavior on shutdown
-        struct linger so_linger;
-        so_linger.l_onoff = 1;   // Enable SO_LINGER
-        so_linger.l_linger = 30; // Wait for 30 seconds for the connection to close
-        if (setsockopt(sockfd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof so_linger) != 0)
-        {
-            perror("SO_LINGER failure");
         }
 
         // Connect to the server
@@ -190,7 +193,7 @@ int main(int argc, char *argv[])
         }
 
         // Process received data
-        receive_data(connfd, flow_size);
+        receive_data(sockfd, flow_size);
 
         // Shutdown and close the socket
         shutdown(sockfd, SHUT_WR);

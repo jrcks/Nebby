@@ -4,14 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <errno.h>
 #include <time.h>
 #include <pthread.h>
 
-#define PORT 8080
+#define PORT 8081
 #define BUFFSIZE (150 * 1024)
 #define RECORD_PERIOD 50000
 #define LOG_FILE "stats.csv"
@@ -72,7 +71,7 @@ void send_data(int sockfd, char *web_file)
 {
     // Enable TCP_QUICKACK option every connection to reduce acknowledgment latency
     int on = 1;
-    if (setsockopt(connfd, IPPROTO_TCP, TCP_QUICKACK, (void *)&on, sizeof(on)) == -1)
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK, (void *)&on, sizeof(on)) == -1)
     {
         perror("TCP_QUICKACK Failure");
         exit(EXIT_FAILURE);
@@ -88,75 +87,80 @@ void send_data(int sockfd, char *web_file)
 
     // Get the file size
     fseek(fp, 0L, SEEK_END);
-    int flow_size = ftell(fp);
+    long file_size = ftell(fp);
+    rewind(fp);
+    printf("The size to send is %ld B\n", file_size);
 
     // Buffer to store file data
-    char buff[flow_size];
-    bzero(buff, flow_size);
+    char buff[file_size];
 
     // Send the file data
-    int bytes_sent = 0;
-    while (1)
+    size_t bytes_sent = 0;
+    while (bytes_sent < file_size)
     {
         // Read data from the file
-        int num_bytes = fread(buff, 1, flow_size, fp);
-        if (num_bytes == 0)
-        {
-            break; // End of file
+        size_t num_bytes = fread(buff, 1, file_size, fp);
+        if (num_bytes == 0) {
+            if (feof(fp)) {
+                break; // End of file
+            } else {
+                perror("Error reading file");
+                fclose(fp);
+                exit(EXIT_FAILURE);
+            }
         }
 
         // Send data to the client
-        int num_sent = send(sockfd, buff, num_bytes, 0);
-        if (num_sent == -1)
+        size_t bytes_sent_now = 0;
+        while (bytes_sent_now < num_bytes) 
         {
-            perror("Send Failed");
-            exit(EXIT_FAILURE);
+            // Send whats remaining
+            size_t now_sent = send(sockfd, buff + bytes_sent_now, num_bytes - bytes_sent_now, 0);
+            if (now_sent == -1) 
+            {
+                perror("Send failed");
+                fclose(fp);
+                exit(EXIT_FAILURE);
+            }
+
+            // Update the local total sent byte count
+            bytes_sent_now += now_sent;
         }
-        bytes_sent += num_sent; // Update the total sent byte count
+
+        // Update the total
+        bytes_sent += bytes_sent_now;
     }
 
     // Close the file
     fclose(fp);
 
     // Log the total number of bytes sent
-    printf("The size sent is %d B\n", bytes_sent);
+    printf("The size sent is %ld B\n", bytes_sent);
 }
 
 // Function to check and parse command-line arguments
-void parse_args(int argc, char *argv[], int *num_flow, char *web_file, char *congestion_ctl)
+void parse_args(int argc, char *argv[], char *web_file, char *congestion_ctl)
 {
-    // First argument is the number of flows
+    // First argument is the file to serve
     if (argc < 2)
     {
-        // Default number of flows is 5
-        *num_flow = 5;
-    }
-    else
-    {
-        *num_flow = atoi(argv[1]);
-
-        // Check if the number of flows is valid
-        if (*num_flow <= 0)
-        {
-            fprintf(stderr, "Error: please enter a valid value for the number of flows\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    // Second argument is the file to serve
-    if (argc < 3)
-    {
         // Default file is index.html
-        strcpy(web_file, "index.html");
+        realpath("./index.html", web_file);
     }
     else
     {
         // Use the provided file
-        strcpy(web_file, argv[2]);
+        realpath(argv[1], web_file);
     }
 
-    // Third argument is the congestion control algorithm
-    if (argc < 4)
+    // Validate the file to server can be accessed
+    if (access(web_file, F_OK) < 0)
+    {
+        perror("File to serve does not exist");
+    }
+
+    // Second argument is the congestion control algorithm
+    if (argc < 3)
     {
         // Default congestion control algorithm is cubic
         strcpy(congestion_ctl, "cubic");
@@ -164,7 +168,7 @@ void parse_args(int argc, char *argv[], int *num_flow, char *web_file, char *con
     else
     {
         // Use provided congestion control algorithm
-        strcpy(congestion_ctl, argv[3]);
+        strcpy(congestion_ctl, argv[2]);
     }
 }
 
@@ -192,25 +196,18 @@ void *thread_recording(void *arg)
 }
 
 // Main server function
-
 int main(int argc, char *argv[])
 {
-    int sockfd, connfd;
-    socklen_t len;
-    struct sockaddr_in servaddr, cli;
-    int num_flow;
-    char web_file[256];
-    char congestion_ctl[256];
-
     // Parse command-line arguments
-    parse_args(argc, argv, &num_flow, web_file, congestion_ctl);
-    printf("File to serve is %d, congestion control algorithm is %s\n", web_file, congestion_ctl);
+    char web_file[256], congestion_ctl[256];
+    parse_args(argc, argv, web_file, congestion_ctl);
+    printf("File to serve is %s, congestion control algorithm is %s\n", web_file, congestion_ctl);
 
     // Check/prepare the statistics file
     check_file_exist(LOG_FILE);
 
     // Create a new socket
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
     {
         perror("Socket creation failed");
@@ -218,7 +215,23 @@ int main(int argc, char *argv[])
     }
     printf("Socket successfully created..\n");
 
+    // Set SO_REUSEADDR to reuse the same port
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0)
+    {
+        perror("SO_REUSEADDR failure");
+    }
+
+    // Set SO_LINGER option to control the behavior on shutdown
+    struct linger so_linger;
+    so_linger.l_onoff = 1;   // Enable SO_LINGER
+    so_linger.l_linger = 30; // Wait for 30 seconds for the connection to close
+    if (setsockopt(sockfd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger)) < 0)
+    {
+        perror("SO_LINGER failure on the receiver!");
+    }
+
     // Assign IP and PORT to the socket
+    struct sockaddr_in servaddr;
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;                // IPv4
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY); // Accept connections on any available network interface
@@ -241,60 +254,51 @@ int main(int argc, char *argv[])
     printf("Server listening..\n");
 
     // Initialize the length of the client address structure
-    len = sizeof(cli);
-    for (int i = 0; i < num_flow; i++)
+    struct sockaddr_in clientaddr;
+    socklen_t len = sizeof(clientaddr);
+
+    // Serve until user presses ctrl + c
+    int id = 0;
+    while (1)
     {
         // Accept incoming client connection
-        connfd = accept(sockfd, (SA *)&cli, &len);
+        int connfd = accept(sockfd, (SA *)&clientaddr, &len);
         if (connfd < 0)
         {
             perror("Server accept failed");
             exit(EXIT_FAILURE);
         }
-        printf("# %d Server accepted the client...\n", i + 1);
+        printf("[#%d] Server accepted the client...\n", ++id);
 
         // Set TCP_NODELAY option to disable Nagle's algorithm
-        int on = 1;
-        if (setsockopt(connfd, IPPROTO_TCP, TCP_NODELAY, (void *)&on, sizeof(on)) == -1)
+        if (setsockopt(connfd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int)) < 0)
         {
             perror("TCP_NODELAY failure");
         }
 
         // Clear TCP_CORK option for each connection
-        int off = 0;
-        if (setsockopt(connfd, IPPROTO_TCP, TCP_CORK, (void *)&off, sizeof(off)) == -1)
+        if (setsockopt(connfd, IPPROTO_TCP, TCP_CORK, &(int){0}, sizeof(int)) < 0)
         {
             perror("TCP_CORK failure");
         }
 
+        // TODO: Example value
         // Set the busy poll option
-        int value = 50; // TODO: Example value
-        if (setsockopt(sockfd, SOL_SOCKET, SO_BUSY_POLL, (char *)&value, sizeof(value)) == -1)
+        if (setsockopt(sockfd, SOL_SOCKET, SO_BUSY_POLL, &(int){50}, sizeof(int)) < 0)
         {
             perror("SO_BUSY_POLL failure");
         }
 
         // Set the send buffer size to the defined value
-        // TODO: SO_RCVBUFFORCE is not the send buffer
-        int size = BUFFSIZE;
-        if (setsockopt(connfd, SOL_SOCKET, SO_RCVBUFFORCE, &size, sizeof(size)) == -1)
+        if (setsockopt(connfd, SOL_SOCKET, SO_SNDBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
         {
             perror("SO_RCVBUF failure");
         }
 
         // Set the congestion control algorithm
-        if (setsockopt(connfd, IPPROTO_TCP, TCP_CONGESTION, congestion_ctl, sizeof(congestion_ctl)) != 0)
+        if (setsockopt(connfd, IPPROTO_TCP, TCP_CONGESTION, congestion_ctl, sizeof(congestion_ctl)) < 0)
         {
             perror("Congestion control algorithm specification error");
-        }
-
-        // Set SO_LINGER option to control the behavior on shutdown
-        struct linger so_linger;
-        so_linger.l_onoff = 1;   // Enable SO_LINGER
-        so_linger.l_linger = 30; // Wait for 30 seconds for the connection to close
-        if (setsockopt(connfd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof so_linger) != 0)
-        {
-            perror("SO_LINGER failure on the receiver!");
         }
 
         // Prepare thread structure for recording
@@ -312,10 +316,11 @@ int main(int argc, char *argv[])
         printf("Created a thread for recording.\n");
 
         // Send data
-        send_data(sockfd, web_file);
+        send_data(connfd, web_file);
 
         // Close the connection
         close(connfd);
+        printf("Server closed connection to client...\n");
 
         // Wait for the recording thread to finish
         pthread_join(tid, NULL);
@@ -339,7 +344,7 @@ int main(int argc, char *argv[])
                                 "%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t"
                                 "%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t"
                                 "%u\t%u\t%u\t%u\n",
-                    j + 1,
+                    id,
                     recording_elems[i].timespec.tv_sec,
                     recording_elems[i].timespec.tv_nsec,
                     recording_elems[i].tcp_info.tcpi_state,
@@ -378,10 +383,8 @@ int main(int argc, char *argv[])
 
         // Close the statistics file
         fclose(statistics);
+        printf("Saved statistics...\n");
     }
-
-    // Close the socket after all connections are handled
-    shutdown(sockfd, SHUT_WR);
 
     return 0;
 }
