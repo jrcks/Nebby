@@ -77,8 +77,8 @@ void parse_args(int argc, char *argv[], int *num_flow, int *flow_size, char *con
     // First argument is the number of flows
     if (argc < 2)
     {
-        // Default number of flows is 100
-        *num_flow = 100;
+        // Default number of flows is 1
+        *num_flow = 1;
     }
     else
     {
