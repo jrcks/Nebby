@@ -2,5 +2,5 @@
 logs/
 measurements/*
 
-# Ignore installation files in sub-modules
-mahimahi/
+# Ignore VS Code files
+.vscode
