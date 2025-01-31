@@ -36,27 +36,27 @@ sudo sysctl net.ipv4.tcp_sack=0 1>/dev/null
 
 # === wget client === #
 # Run wget with the specified url
-echo "[client.sh] Executing wget for the url: $url"
-if [[ -n "$wget_output" ]]; then
-    # If wget_output is set
-    echo "$cca" >>"$wget_output"
-    echo "$url" >>"$wget_output"
-    wget -U Mozilla --tries=1 --timeout=30 "$url" -O "$output_dir/index.html" &>>"$wget_output"
-else
-    # If wget_output is not set
-    wget -U Mozilla --tries=1 --timeout=30 "$url" -O "$output_dir/index.html"
-fi
+# echo "[client.sh] Executing wget for the url: $url"
+# if [[ -n "$wget_output" ]]; then
+#     # If wget_output is set
+#     echo "$cca" >>"$wget_output"
+#     echo "$url" >>"$wget_output"
+#     wget -U Mozilla --tries=1 --timeout=30 "$url" -O "$output_dir/index.html" &>>"$wget_output"
+# else
+#     # If wget_output is not set
+#     wget -U Mozilla --tries=1 --timeout=30 "$url" -O "$output_dir/index.html"
+# fi
 
 # === selenium client === #
-# Uncomment the following block to run custom scripts or navigate directories
-# cd ..
-# cd selenium/chrome
-# cd ..
-# cd custom_clients
-# python3 spotify.py "$name"
-# sudo ./host 1 youtube.html "$cca"
-# cd ..
-# cd ..
+# Run the selenium client
+# python3 ../selenium/chrome/spotify.py "$name"
 
-sleep 1 # Wait for any background processes to complete
+# === custom client === #
+# Run the custom c client
+rm ../custom_clients/client
+gcc ../custom_clients/client.c -o ../custom_clients/client -lpthread
+sudo ../custom_clients/client 1
+
+# Wait for any background processes to complete
+sleep 1
 echo "DONE!"
