@@ -362,11 +362,11 @@ int main(int argc, char *argv[])
         }
 
         // Prepare thread structure for recording
-        struct Thread_Record_Struct thread_record_struct = {sockfd = sockfd};
+        struct Thread_Record_Struct thread_record_struct = {sockfd = connfd};
         pthread_t tid;
 
         // Create the thread for recording TCP statistics
-        if (pthread_create(&tid, NULL, thread_recording, &thread_record_struct) != 0)
+        if (pthread_create(&tid, NULL, thread_recording, &thread_record_struct) < 0)
         {
             perror("Failed to create thread");
         }
@@ -375,13 +375,13 @@ int main(int argc, char *argv[])
         // Send data
         send_data(connfd, web_file);
 
-        // Close the connection
-        close(connfd);
-        printf("Server closed connection to client...\n");
-
         // Save statistics after recording thread finishes
         pthread_join(tid, NULL);
         save_statistics(id, thread_record_struct.recording_elems);
+
+        // Close the connection
+        close(connfd);
+        printf("Server closed connection to client...\n");
     }
 
     return 0;
