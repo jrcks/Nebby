@@ -136,7 +136,7 @@ void send_data(int connfd, char *web_file)
 }
 
 // Function to check and parse command-line arguments
-void parse_args(int argc, char *argv[], char *dest_ip, char *web_file, char *congestion_ctl, int *num_conns)
+void parse_args(int argc, char *argv[], char *dest_ip, char *congestion_ctl, char *web_file, int *num_conns)
 {
     // First argument is the destination ip address
     if (argc < 2)
@@ -150,26 +150,8 @@ void parse_args(int argc, char *argv[], char *dest_ip, char *web_file, char *con
         strcpy(dest_ip, argv[1]);
     }
 
-    // Second argument is the file to send
+    // Second argument is the congestion control algorithm
     if (argc < 3)
-    {
-        // Default file is index.html
-        realpath("./index.html", web_file);
-    }
-    else
-    {
-        // Use the provided file
-        realpath(argv[2], web_file);
-    }
-
-    // Validate the file to server can be accessed
-    if (access(web_file, F_OK) < 0)
-    {
-        perror("File to serve does not exist");
-    }
-
-    // Thrird argument is the congestion control algorithm
-    if (argc < 4)
     {
         // Default congestion control algorithm is cubic
         strcpy(congestion_ctl, "cubic");
@@ -177,7 +159,25 @@ void parse_args(int argc, char *argv[], char *dest_ip, char *web_file, char *con
     else
     {
         // Use provided congestion control algorithm
-        strcpy(congestion_ctl, argv[3]);
+        strcpy(congestion_ctl, argv[2]);
+    }
+
+    // Third argument is the file to send
+    if (argc < 4)
+    {
+        // Default file is index.html
+        realpath("./index.html", web_file);
+    }
+    else
+    {
+        // Use the provided file
+        realpath(argv[3], web_file);
+    }
+
+    // Validate the file to server can be accessed
+    if (access(web_file, F_OK) < 0)
+    {
+        perror("File to serve does not exist");
     }
 
     // Fourth argument is the numbers of connections to be made
@@ -284,13 +284,13 @@ void save_statistics(int id, struct Recording_elem *recording_elems)
     printf("Saved statistics...\n");
 }
 
-/// Main server function
+// Main sender function
 int main(int argc, char *argv[])
 {
     // Parse command-line arguments
-    char dest_ip[256], web_file[256], congestion_ctl[256];
+    char dest_ip[256], congestion_ctl[256], web_file[256];
     int num_conns;
-    parse_args(argc, argv, dest_ip, web_file, congestion_ctl, &num_conns);
+    parse_args(argc, argv, dest_ip, congestion_ctl, web_file, &num_conns);
     printf("Sending %s %d times to %s with congestion control algorithm %s\n", web_file, num_conns, dest_ip, congestion_ctl);
 
     // Check/prepare the statistics file
