@@ -132,9 +132,6 @@ fi
 # Log the completion of the conversion
 echo "[run_test.sh] Conversion completed: $cca-$predelay-$postdelay-$bandwidth-$buffer_size-tcp.csv and $cca-$predelay-$postdelay-$bandwidth-$buffer_size-udp.csv generated."
 
-# Remove residual index files
-# rm -f index*
-
 # Kill any remaining iperf, iperf3, tcpdump, and mm-delay processes
 killall iperf iperf3 tcpdump mm-delay mm-link 2>/dev/null
 
