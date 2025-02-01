@@ -50,8 +50,15 @@ void receive_data(int connfd)
         }
 
         // Write received bytes to the file
-        fwrite(buff, 1, num_bytes, fp);
-        fflush(fp); // Ensure data is written to the file
+        size_t written = fwrite(buff, 1, num_bytes, fp);
+        if (written < num_bytes)
+        {
+            perror("Failed to write all data to file");
+            break;
+        }
+
+        // Ensure data is written to the file
+        fflush(fp);
 
         bytes_recv += num_bytes; // Update the total received byte count
     }
@@ -67,7 +74,7 @@ void receive_data(int connfd)
 void parse_args(int argc, char *argv[], char *dest_ip, int *num_conns)
 {
     // First argument is the destination ip address
-    if (argc < 1)
+    if (argc < 2)
     {
         // Default destination ip address is localhost
         strcpy(dest_ip, "127.0.0.1");
@@ -79,7 +86,7 @@ void parse_args(int argc, char *argv[], char *dest_ip, int *num_conns)
     }
 
     // Second argument is the number of connections to make
-    if (argc < 2)
+    if (argc < 3)
     {
         // Default number of connections is 1
         *num_conns = 1;

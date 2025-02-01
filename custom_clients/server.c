@@ -187,6 +187,68 @@ void *thread_recording(void *arg)
     }
 }
 
+void save_statistics(int id, struct Recording_elem *recording_elems)
+{
+    // Write recorded statistics to the file
+    FILE *statistics = fopen(LOG_FILE, "a+");
+    if (statistics == NULL)
+    {
+        perror("Failed to open statistics file");
+        return;
+    }
+
+    // Save recorded statistics
+    for (int i = 0; i < RECORD_PERIOD; i++)
+    {
+        recording_elems[i].ts = (int64_t)recording_elems[i].timespec.tv_sec * 1e9 + (int64_t)recording_elems[i].timespec.tv_nsec;
+
+        fprintf(statistics, "%d\t%lu.%lu\t"
+                            "%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t"
+                            "%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t"
+                            "%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t"
+                            "%u\t%u\t%u\t%u\n",
+                id,
+                recording_elems[i].timespec.tv_sec,
+                recording_elems[i].timespec.tv_nsec,
+                recording_elems[i].tcp_info.tcpi_state,
+                recording_elems[i].tcp_info.tcpi_ca_state,
+                recording_elems[i].tcp_info.tcpi_retransmits,
+                recording_elems[i].tcp_info.tcpi_probes,
+                recording_elems[i].tcp_info.tcpi_backoff,
+                recording_elems[i].tcp_info.tcpi_options,
+                recording_elems[i].tcp_info.tcpi_snd_wscale,
+                recording_elems[i].tcp_info.tcpi_rcv_wscale,
+                recording_elems[i].tcp_info.tcpi_rto,
+                recording_elems[i].tcp_info.tcpi_ato,
+                recording_elems[i].tcp_info.tcpi_snd_mss,
+                recording_elems[i].tcp_info.tcpi_rcv_mss,
+                recording_elems[i].tcp_info.tcpi_unacked,
+                recording_elems[i].tcp_info.tcpi_sacked,
+                recording_elems[i].tcp_info.tcpi_lost,
+                recording_elems[i].tcp_info.tcpi_retrans,
+                recording_elems[i].tcp_info.tcpi_fackets,
+                recording_elems[i].tcp_info.tcpi_last_data_sent,
+                recording_elems[i].tcp_info.tcpi_last_ack_sent,
+                recording_elems[i].tcp_info.tcpi_last_data_recv,
+                recording_elems[i].tcp_info.tcpi_last_ack_recv,
+                recording_elems[i].tcp_info.tcpi_pmtu,
+                recording_elems[i].tcp_info.tcpi_rcv_ssthresh,
+                recording_elems[i].tcp_info.tcpi_rtt,
+                recording_elems[i].tcp_info.tcpi_rttvar,
+                recording_elems[i].tcp_info.tcpi_snd_ssthresh,
+                recording_elems[i].tcp_info.tcpi_snd_cwnd,
+                recording_elems[i].tcp_info.tcpi_advmss,
+                recording_elems[i].tcp_info.tcpi_reordering,
+                recording_elems[i].tcp_info.tcpi_rcv_rtt,
+                recording_elems[i].tcp_info.tcpi_rcv_space,
+                recording_elems[i].tcp_info.tcpi_total_retrans);
+    }
+
+    // Close the statistics file
+    fclose(statistics);
+    printf("Saved statistics...\n");
+}
+
 // Main server function
 int main(int argc, char *argv[])
 {
@@ -301,15 +363,12 @@ int main(int argc, char *argv[])
 
         // Prepare thread structure for recording
         struct Thread_Record_Struct thread_record_struct = {sockfd = sockfd};
-        struct Recording_elem *recording_elems = thread_record_struct.recording_elems;
         pthread_t tid;
 
         // Create the thread for recording TCP statistics
         if (pthread_create(&tid, NULL, thread_recording, &thread_record_struct) != 0)
         {
             perror("Failed to create thread");
-            close(sockfd);
-            continue;
         }
         printf("Created a thread for recording.\n");
 
@@ -320,68 +379,9 @@ int main(int argc, char *argv[])
         close(connfd);
         printf("Server closed connection to client...\n");
 
-        // Wait for the recording thread to finish
+        // Save statistics after recording thread finishes
         pthread_join(tid, NULL);
-
-        // Write recorded statistics to the file
-        FILE *statistics = fopen(LOG_FILE, "a+");
-        if (statistics == NULL)
-        {
-            perror("Failed to open statistics file");
-            close(sockfd);
-            continue;
-        }
-
-        // Save recorded statistics
-        for (int i = 0; i < RECORD_PERIOD; i++)
-        {
-            recording_elems[i].ts = (int64_t)recording_elems[i].timespec.tv_sec * 1e9 + (int64_t)recording_elems[i].timespec.tv_nsec;
-
-            fprintf(statistics, "%d\t%lu.%lu\t"
-                                "%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t"
-                                "%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t"
-                                "%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t%u\t"
-                                "%u\t%u\t%u\t%u\n",
-                    id,
-                    recording_elems[i].timespec.tv_sec,
-                    recording_elems[i].timespec.tv_nsec,
-                    recording_elems[i].tcp_info.tcpi_state,
-                    recording_elems[i].tcp_info.tcpi_ca_state,
-                    recording_elems[i].tcp_info.tcpi_retransmits,
-                    recording_elems[i].tcp_info.tcpi_probes,
-                    recording_elems[i].tcp_info.tcpi_backoff,
-                    recording_elems[i].tcp_info.tcpi_options,
-                    recording_elems[i].tcp_info.tcpi_snd_wscale,
-                    recording_elems[i].tcp_info.tcpi_rcv_wscale,
-                    recording_elems[i].tcp_info.tcpi_rto,
-                    recording_elems[i].tcp_info.tcpi_ato,
-                    recording_elems[i].tcp_info.tcpi_snd_mss,
-                    recording_elems[i].tcp_info.tcpi_rcv_mss,
-                    recording_elems[i].tcp_info.tcpi_unacked,
-                    recording_elems[i].tcp_info.tcpi_sacked,
-                    recording_elems[i].tcp_info.tcpi_lost,
-                    recording_elems[i].tcp_info.tcpi_retrans,
-                    recording_elems[i].tcp_info.tcpi_fackets,
-                    recording_elems[i].tcp_info.tcpi_last_data_sent,
-                    recording_elems[i].tcp_info.tcpi_last_ack_sent,
-                    recording_elems[i].tcp_info.tcpi_last_data_recv,
-                    recording_elems[i].tcp_info.tcpi_last_ack_recv,
-                    recording_elems[i].tcp_info.tcpi_pmtu,
-                    recording_elems[i].tcp_info.tcpi_rcv_ssthresh,
-                    recording_elems[i].tcp_info.tcpi_rtt,
-                    recording_elems[i].tcp_info.tcpi_rttvar,
-                    recording_elems[i].tcp_info.tcpi_snd_ssthresh,
-                    recording_elems[i].tcp_info.tcpi_snd_cwnd,
-                    recording_elems[i].tcp_info.tcpi_advmss,
-                    recording_elems[i].tcp_info.tcpi_reordering,
-                    recording_elems[i].tcp_info.tcpi_rcv_rtt,
-                    recording_elems[i].tcp_info.tcpi_rcv_space,
-                    recording_elems[i].tcp_info.tcpi_total_retrans);
-        }
-
-        // Close the statistics file
-        fclose(statistics);
-        printf("Saved statistics...\n");
+        save_statistics(id, thread_record_struct.recording_elems);
     }
 
     return 0;
