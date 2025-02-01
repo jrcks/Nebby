@@ -50,8 +50,50 @@ if [ "$disable_SACK" == "True" ]; then
     sudo sh -c "echo '0' > /proc/sys/net/ipv4/tcp_sack"
 fi
 
-# Run the simulation
-./simnet.sh "$cca" "$predelay" "$postdelay" "$bandwidth" "$buffer_size" "$url" "$pcap_file" "$output_dir"
+# Calculate Buffer Delay Product (BDP) in bytes
+total_delay_ms=$((predelay + postdelay))
+bdp=$(($total_delay_ms * bandwidth * buffer_size / 4))
+
+# Set Buffer AQM (Active Queue Management) type
+aqm="droptail"
+
+# Print parameters for debugging
+echo "[run_test.sh] Congestion Control Algorithm: $cca"
+echo "[run_test.sh] Predelay: $predelay ms"
+echo "[run_test.sh] Postdelay: $postdelay ms"
+echo "[run_test.sh] Bandwidth: $bandwidth kbps"
+echo "[run_test.sh] Buffer Size (1 BDP): $bdp bytes"
+echo "[run_test.sh] Active Queue Management: $aqm"
+
+# Define trace file location
+trace_file="$output_dir/bw.trace"
+
+# Check if the output directory exists, create it if not
+if [ ! -d "$output_dir" ]; then
+    mkdir -p "$output_dir"
+    echo "[simnet.sh] Created directory: $output_dir"
+fi
+
+# Create or clear the bandwidth trace file
+rm -f "$trace_file"
+touch "$trace_file"
+
+# Number of entries for the bandwidth trace
+num_entries=$(($bandwidth / 12))
+
+# Generate bandwidth trace entries
+for ((i = 1; i <= num_entries; i++)); do
+    echo $(((i * 1000) / num_entries)) >>"$trace_file"
+done
+
+# Enable IP forwarding
+sudo sysctl -w net.ipv4.ip_forward=1 1>/dev/null
+
+# Execute the bandwidth test with specified parameters
+mm-delay "$predelay" ./btl.sh "$pcap_file" "$postdelay" "$bdp" "$aqm" "$cca" "$url" "$output_dir"
+
+# Stop the mm-delay command
+sudo killall mm-delay 2>/dev/null
 
 # +-------------------------------------+
 # | Convert received .pcap to .csv file |
