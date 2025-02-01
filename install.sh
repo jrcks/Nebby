@@ -45,16 +45,5 @@ make
 sudo make install
 cd ..
 
-# Mark scripts as executable
-FILES="
-    ./scripts/btl.sh
-    ./scripts/clean.sh
-    ./scripts/client.sh
-    ./scripts/new-btl.sh
-    ./scripts/run_test.sh
-    ./scripts/simnet.sh
-"
-chmod +x $FILES
-
 # Echo success message
 echo "Installation completed successfully!"
