@@ -127,3 +127,5 @@ killall iperf iperf3 tcpdump mm-delay mm-link 2>/dev/null
 
 # Completion message
 echo "[run_test.sh] Test completed successfully."
+
+exit 0
