@@ -71,7 +71,7 @@ trace_file="$output_dir/bw.trace"
 # Check if the output directory exists, create it if not
 if [ ! -d "$output_dir" ]; then
     mkdir -p "$output_dir"
-    echo "[simnet.sh] Created directory: $output_dir"
+    echo "[run_test.sh] Created directory: $output_dir"
 fi
 
 # Create or clear the bandwidth trace file
