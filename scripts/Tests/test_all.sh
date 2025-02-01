@@ -16,8 +16,4 @@ for cc in $variants; do
     # Run the test for the current variant
     ../run_test.sh "$cc" "$predelay" "$postdelay" "$linkspeed" "$buffsize"
     sleep 2
-
-    # Clean up after the test
-    ../clean.sh
-    sleep 2
 done

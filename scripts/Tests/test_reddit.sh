@@ -10,10 +10,6 @@ for d in $delays; do
     # Execute the test command with specified parameters
     ../run_test.sh "p-reddit-$d" 2 "$d" 200 1
     sleep 2
-
-    # Clean up after the test
-    ../clean.sh
-    sleep 2
 done
 
 # Confirmation message after tests

@@ -44,8 +44,6 @@ while IFS= read -r line; do
                     # Run the test with the specified parameters
                     ../run_test_wget.sh "$test_name" "$predelay" "$postdelay" "$linkspeed" "$buffsize" "$link"
                     sleep 1
-                    ../clean.sh
-                    sleep 1
                 done
             done
         done

@@ -27,10 +27,6 @@ for d in $delays; do
             ../run_test.sh "$cc" "$predelay" "$postdelay" "$linkspeed" "$buffsize"
             sleep 2
 
-            # Clean up after the test
-            ../clean.sh
-            sleep 2
-
             # Copy the traces for the current variant into the output directory
             cp "cc-traces/$cc.csv" "$output_dir/$cc.csv"
         done

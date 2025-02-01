@@ -21,8 +21,4 @@ for ((i = 1; i <= num; i++)); do
     # Run the test with the extracted site and URL
     ../run_test.sh "$site" 0 100 200 2 "$url"
     sleep 1
-
-    # Clean up after the test
-    ../clean.sh
-    sleep 1
 done

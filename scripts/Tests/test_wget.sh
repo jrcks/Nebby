@@ -24,10 +24,6 @@ for predelay in $predelays; do
                 # Running the test
                 ../run_test.sh "$test_name" "$predelay" "$postdelay" "$linkspeed" "$buffsize" "$link"
                 sleep 1
-
-                # Cleaning up
-                ../clean.sh
-                sleep 1
             done
         done
     done
