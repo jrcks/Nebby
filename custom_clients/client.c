@@ -12,7 +12,6 @@
 #include <errno.h>
 
 #define PORT 8081
-#define DEST_IP "127.0.0.1"
 #define BUFFSIZE (150 * 1024)
 #define OUT_FILE "/dev/null"
 #define SA struct sockaddr

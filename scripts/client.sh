@@ -53,14 +53,16 @@ sudo sysctl net.ipv4.tcp_sack=0 1>/dev/null
 
 # === custom client === #
 # Run the custom c client
-# rm ../custom_clients/client
-# gcc ../custom_clients/client.c -o ../custom_clients/client -lpthread
-# sudo ../custom_clients/client 1
+# cd ../custom_clients
+# gcc ./client.c -o ./client -lpthread
+# sudo ./client "$url" 1
+# cd - 1> /dev/null
 
 # Or run the custom c sender
-rm ../custom_clients/sender
-gcc ../custom_clients/sender.c -o ../custom_clients/sender -lpthread
-sudo ../custom_clients/sender "$url" "$cca"
+cd ../custom_clients
+gcc ./sender.c -o ./sender -lpthread
+sudo ./sender "$url" "$cca" "./websites/index.html"
+cd - 1> /dev/null
 
 # Wait for any background processes to complete
 sleep 1
