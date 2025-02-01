@@ -5,7 +5,9 @@ measurements/*
 # Ignore VS Code files
 .vscode
 
-# Ignore compiled client and server and the stats log file in custom client
+# Ignore compiled client/server and sender/receiver and the stats log file in custom client
 custom_clients/client
 custom_clients/server
+custom_clients/sender
+custom_clients/receiver
 custom_clients/stats.csv
