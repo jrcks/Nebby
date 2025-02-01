@@ -3,7 +3,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <netdb.h>
-#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
@@ -12,7 +11,6 @@
 #include <errno.h>
 
 #define PORT 8081
-#define DEST_IP "127.0.0.1"
 #define BUFFSIZE (150 * 1024)
 #define OUT_FILE "/dev/null"
 #define SA struct sockaddr
@@ -67,7 +65,7 @@ void receive_data(int connfd)
     fclose(fp);
 
     // Log the total number of bytes received
-    printf("Total Bytes Received: %d\n", bytes_recv);
+    printf("Total Bytes Received: %d B\n", bytes_recv);
 }
 
 // Main client function
@@ -124,7 +122,7 @@ int main(int argc, char *argv[])
             perror("Server accept failed");
             exit(EXIT_FAILURE);
         }
-        printf("[#%d] Server accepted the client...\n", ++id);
+        printf("Server accepted the client...\n");
 
         // Set SO_LINGER option to control the behavior on shutdown
         struct linger so_linger;
@@ -145,14 +143,6 @@ int main(int argc, char *argv[])
         if (setsockopt(connfd, SOL_SOCKET, SO_RCVBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
         {
             perror("SO_RCVBUFFORCE failure");
-        }
-
-        // Connect to the server
-        if (connect(sockfd, (SA *)&servaddr, sizeof(servaddr)) < 0)
-        {
-            perror("Connection failed");
-            close(sockfd);
-            continue;
         }
 
         // Process received data

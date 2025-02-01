@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <errno.h>
@@ -135,7 +136,7 @@ void send_data(int connfd, char *web_file)
 }
 
 // Function to check and parse command-line arguments
-void parse_args(int argc, char *argv[], char *dest_ip, char *web_file, char *congestion_ctl)
+void parse_args(int argc, char *argv[], char *dest_ip, char *web_file, char *congestion_ctl, int *num_conns)
 {
     // First argument is the destination ip address
     if (argc < 2)
@@ -177,6 +178,24 @@ void parse_args(int argc, char *argv[], char *dest_ip, char *web_file, char *con
     {
         // Use provided congestion control algorithm
         strcpy(congestion_ctl, argv[3]);
+    }
+
+    // Fourth argument is the numbers of connections to be made
+    if (argc < 5)
+    {
+        // Default number of connections is 1
+        *num_conns = 1;
+    }
+    else
+    {
+        *num_conns = atoi(argv[4]);
+
+        // Validate the number of connections is a positive integer
+        if (*num_conns <= 0)
+        {
+            perror("Please enter a valid value for the number of connections");
+            exit(EXIT_FAILURE);
+        }
     }
 }
 
@@ -270,8 +289,9 @@ int main(int argc, char *argv[])
 {
     // Parse command-line arguments
     char dest_ip[256], web_file[256], congestion_ctl[256];
-    parse_args(argc, argv, dest_ip, web_file, congestion_ctl);
-    printf("Sending %s to %s with congestion control algorithm %s\n", web_file, dest_ip, congestion_ctl);
+    int num_conns;
+    parse_args(argc, argv, dest_ip, web_file, congestion_ctl, &num_conns);
+    printf("Sending %s %d times to %s with congestion control algorithm %s\n", web_file, num_conns, dest_ip, congestion_ctl);
 
     // Check/prepare the statistics file
     check_file_exist(LOG_FILE);
@@ -341,17 +361,6 @@ int main(int argc, char *argv[])
             perror("Congestion control algorithm failure");
         }
 
-        // Prepare thread structure for recording
-        struct Thread_Record_Struct thread_record_struct = {sockfd = sockfd};
-        pthread_t tid;
-
-        // Create the thread for recording TCP statistics
-        if (pthread_create(&tid, NULL, thread_recording, &thread_record_struct) != 0)
-        {
-            perror("Failed to create thread");
-        }
-        printf("Created a thread for recording.\n");
-
         // Connect to the server
         if (connect(sockfd, (SA *)&servaddr, sizeof(servaddr)) < 0)
         {
@@ -360,16 +369,29 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        // Send data
-        send_data(connfd, web_file);
+        // Prepare thread structure for recording
+        struct Thread_Record_Struct thread_record_struct = {sockfd = sockfd};
+        pthread_t tid;
 
-        // Shutdown and close the socket
+        // Create the thread for recording TCP statistics
+        if (pthread_create(&tid, NULL, thread_recording, &thread_record_struct) < 0)
+        {
+            perror("Failed to create thread");
+        }
+        printf("Created a thread for recording.\n");
+
+        // Send data
+        send_data(sockfd, web_file);
+
+        // Shutdown the socket
         shutdown(sockfd, SHUT_WR);
-        close(sockfd);
 
         // Save statistics after recording thread finishes
         pthread_join(tid, NULL);
         save_statistics(conn, thread_record_struct.recording_elems);
+
+        // Close socket after writing statistics
+        close(sockfd);
     }
 
     return 0;
