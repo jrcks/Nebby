@@ -8,3 +8,4 @@ rm -rf ../measurements
 
 # Remove compiled custom clients
 rm ../custom_clients/client ../custom_clients/server ../custom_clients/sender ../custom_clients/receiver
+rm -f ../custom_clients/stats.csv
