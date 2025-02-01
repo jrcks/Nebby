@@ -30,9 +30,9 @@ sudo sysctl net.ipv4.tcp_sack=0 1>/dev/null
 # Uncomment and modify the following lines to launch different clients as needed.
 
 # === iperf3 client === #
-# Example client launch with iperf3 (uncomment and set IP_SERVER)
+# Example client launch with iperf3
 # echo "[client.sh] Running iperf3 with congestion control: $cca"
-# iperf3 -c [IP_SERVER] -p 2500 -C "$cca" -t 60 -R --connect-timeout 2000 -M 100
+# iperf3 -c "$url" -p 2500 -C "$cca" -t 60 -R --connect-timeout 2000 -M 100
 
 # === wget client === #
 # Run wget with the specified url
@@ -62,7 +62,7 @@ sudo sysctl net.ipv4.tcp_sack=0 1>/dev/null
 cd ../custom_clients
 gcc ./sender.c -o ./sender -lpthread
 sudo ./sender "$url" "$cca" "./websites/index.html"
-cd - 1> /dev/null
+cd - 1>/dev/null
 
 # Wait for any background processes to complete
 sleep 1
