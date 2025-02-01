@@ -18,16 +18,8 @@
 #define SA struct sockaddr
 
 // Function to receive data from the server and store it in a file
-void receive_data(int connfd, int flow_size)
+void receive_data(int connfd)
 {
-    // Enable TCP_QUICKACK option to reduce acknowledgment latency
-    int on = 1;
-    if (setsockopt(connfd, IPPROTO_TCP, TCP_QUICKACK, (void *)&on, sizeof(on)) == -1)
-    {
-        perror("TCP_QUICKACK Failure");
-        exit(EXIT_FAILURE);
-    }
-
     // Buffer to store received data temporarily
     char buff[BUFFSIZE];
     bzero(buff, sizeof(buff));
@@ -46,7 +38,7 @@ void receive_data(int connfd, int flow_size)
     {
         // Receive data from the server
         int num_bytes = recv(connfd, buff, sizeof(buff), 0);
-        if (num_bytes == -1)
+        if (num_bytes < 0)
         {
             perror("Receive failed");
             fclose(fp);
@@ -72,75 +64,57 @@ void receive_data(int connfd, int flow_size)
 }
 
 // Function to check and parse command-line arguments
-void parse_args(int argc, char *argv[], int *num_flow, int *flow_size, char *congestion_ctl)
+void parse_args(int argc, char *argv[], char *dest_ip, int *num_conns)
 {
-    // First argument is the number of flows
+    // First argument is the destination ip address
+    if (argc < 1)
+    {
+        // Default destination ip address is localhost
+        strcpy(dest_ip, "127.0.0.1");
+    }
+    else
+    {
+        // Use provided destination ip address
+        strcpy(dest_ip, argv[1]);
+    }
+
+    // Second argument is the number of connections to make
     if (argc < 2)
     {
-        // Default number of flows is 1
-        *num_flow = 1;
+        // Default number of connections is 1
+        *num_conns = 1;
     }
     else
     {
-        *num_flow = atoi(argv[1]);
+        *num_conns = atoi(argv[2]);
 
-        // Validate the number of flows is a positive integer
-        if (*num_flow <= 0)
+        // Validate the number of connections is a positive integer
+        if (*num_conns <= 0)
         {
-            perror("Please enter a valid value for the number of flows.\n");
+            perror("Please enter a valid value for the number of connections");
             exit(EXIT_FAILURE);
         }
-    }
-
-    // Second argument is the flow size
-    if (argc < 3)
-    {
-        // Default flow size is 80 KB
-        *flow_size = 80 * 1024;
-    }
-    else
-    {
-        // Use the flow size provided
-        *flow_size = atoi(argv[2]);
-        if (*flow_size <= 0)
-        {
-            perror("Please enter a valid value for the flow size.\n");
-            exit(EXIT_FAILURE);
-        }
-        
-    }
-
-    // Third argument is the congestion control algorithm
-    if (argc < 3)
-    {
-        // Default congestion control algorithm is cubic
-        strcpy(congestion_ctl, "cubic");
-    }
-    else
-    {
-        // Use provided congestion control algorithm
-        strcpy(congestion_ctl, argv[3]);
     }
 }
 
 // Main client function
 int main(int argc, char *argv[])
 {
-    int num_flow, flow_size;
-    char congestion_ctl[256];
+    char dest_ip[256];
+    int num_conns;
 
     // Parse command-line arguments
-    parse_args(argc, argv, &num_flow, &flow_size, congestion_ctl);
-    printf("Number of flows: %d, Flow size: %d, Congestion control: %s\n", num_flow, flow_size, congestion_ctl);
+    parse_args(argc, argv, dest_ip, &num_conns);
+    printf("Connecting %d times to %s\n", num_conns, dest_ip);
 
     // Set up server address
     struct sockaddr_in servaddr;
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = inet_addr(DEST_IP);
+    servaddr.sin_addr.s_addr = inet_addr(dest_ip);
     servaddr.sin_port = htons(PORT);
 
-    for (int flow = 0; flow < num_flow; flow++)
+    for (int conn = 0; conn < num_conns; conn++)
     {
         // Create a new socket
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -166,22 +140,10 @@ int main(int argc, char *argv[])
             perror("TCP_NODELAY failure");
         }
 
-        // Clear TCP_CORK option for each connection
-        if (setsockopt(sockfd, IPPROTO_TCP, TCP_CORK, &(int){0}, sizeof(int)) < 0)
-        {
-            perror("TCP_CORK failure");
-        }
-
         // Set the receive buffer size to the defined value
         if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
         {
-            perror("SO_RCVBUF failure");
-        }
-
-        // Set the congestion control algorithm
-        if (setsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, (char *)congestion_ctl, sizeof(congestion_ctl)) < 0)
-        {
-            perror("Congestion control algorithm specification error");
+            perror("SO_RCVBUFFORCE failure");
         }
 
         // Connect to the server
@@ -193,7 +155,7 @@ int main(int argc, char *argv[])
         }
 
         // Process received data
-        receive_data(sockfd, flow_size);
+        receive_data(sockfd);
 
         // Shutdown and close the socket
         shutdown(sockfd, SHUT_WR);

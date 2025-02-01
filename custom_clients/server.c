@@ -67,16 +67,8 @@ void check_file_exist(const char *filename)
 }
 
 // Function to handle data sending over the socket
-void send_data(int sockfd, char *web_file)
+void send_data(int connfd, char *web_file)
 {
-    // Enable TCP_QUICKACK option every connection to reduce acknowledgment latency
-    int on = 1;
-    if (setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK, (void *)&on, sizeof(on)) == -1)
-    {
-        perror("TCP_QUICKACK Failure");
-        exit(EXIT_FAILURE);
-    }
-
     // Use the file size as the flow size
     FILE *fp = fopen(web_file, "r");
     if (fp == NULL)
@@ -115,7 +107,7 @@ void send_data(int sockfd, char *web_file)
         while (bytes_sent_now < num_bytes) 
         {
             // Send whats remaining
-            size_t now_sent = send(sockfd, buff + bytes_sent_now, num_bytes - bytes_sent_now, 0);
+            size_t now_sent = send(connfd, buff + bytes_sent_now, num_bytes - bytes_sent_now, 0);
             if (now_sent == -1) 
             {
                 perror("Send failed");
@@ -187,7 +179,7 @@ void *thread_recording(void *arg)
         clock_gettime(CLOCK_REALTIME, &(recording_elems[i].timespec));
 
         // Get TCP information from the socket
-        if (getsockopt(sockfd, SOL_TCP, TCP_INFO, &(recording_elems[i].tcp_info), &tcp_info_length) != 0)
+        if (getsockopt(sockfd, SOL_TCP, TCP_INFO, &(recording_elems[i].tcp_info), &tcp_info_length) < 0)
         {
             perror("Failed to get TCP info");
             break;
@@ -284,7 +276,7 @@ int main(int argc, char *argv[])
 
         // TODO: Example value
         // Set the busy poll option
-        if (setsockopt(sockfd, SOL_SOCKET, SO_BUSY_POLL, &(int){50}, sizeof(int)) < 0)
+        if (setsockopt(connfd, SOL_SOCKET, SO_BUSY_POLL, &(int){50}, sizeof(int)) < 0)
         {
             perror("SO_BUSY_POLL failure");
         }
@@ -292,13 +284,19 @@ int main(int argc, char *argv[])
         // Set the send buffer size to the defined value
         if (setsockopt(connfd, SOL_SOCKET, SO_SNDBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
         {
-            perror("SO_RCVBUF failure");
+            perror("SO_SNDBUFFORCE failure");
+        }
+
+        // Enable TCP_QUICKACK option every connection to reduce acknowledgment latency
+        if (setsockopt(connfd, IPPROTO_TCP, TCP_QUICKACK, &(int){1}, sizeof(int)) < 0)
+        {
+            perror("TCP_QUICKACK failure");
         }
 
         // Set the congestion control algorithm
         if (setsockopt(connfd, IPPROTO_TCP, TCP_CONGESTION, congestion_ctl, sizeof(congestion_ctl)) < 0)
         {
-            perror("Congestion control algorithm specification error");
+            perror("Congestion control algorithm failure");
         }
 
         // Prepare thread structure for recording
