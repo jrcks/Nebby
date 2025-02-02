@@ -82,7 +82,6 @@ done
 sudo sysctl -w net.ipv4.ip_forward=1 1>/dev/null
 
 # Execute the bandwidth test with specified parameters
-echo mm-delay "$predelay" ./btl.sh "$pcap_file" "$postdelay" "$bdp" "$aqm" "$cca" "$url" "$output_dir"
 mm-delay "$predelay" ./btl.sh "$pcap_file" "$postdelay" "$bdp" "$aqm" "$cca" "$url" "$output_dir"
 
 # Stop the mm-delay command
