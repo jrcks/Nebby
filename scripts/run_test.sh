@@ -71,15 +71,18 @@ fi
 rm -f "$trace_file"
 touch "$trace_file"
 
+num=$(($bandwidth/12))
+
 # Generate bandwidth trace entries
-for ((i = 1; i <= $(($bandwidth / 12)); i++)); do
-    echo $(((i * 1000) / num_entries)) >>"$trace_file"
+for (( i=1; i<=$num; i++)); do
+    echo $(($(($i*1000))/$num)) >> "$trace_file"
 done
 
 # Enable IP forwarding
 sudo sysctl -w net.ipv4.ip_forward=1 1>/dev/null
 
 # Execute the bandwidth test with specified parameters
+echo mm-delay "$predelay" ./btl.sh "$pcap_file" "$postdelay" "$bdp" "$aqm" "$cca" "$url" "$output_dir"
 mm-delay "$predelay" ./btl.sh "$pcap_file" "$postdelay" "$bdp" "$aqm" "$cca" "$url" "$output_dir"
 
 # Stop the mm-delay command
