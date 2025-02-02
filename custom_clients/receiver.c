@@ -30,7 +30,7 @@ void *receive_data(void *connfd_ptr)
     if (fp == NULL)
     {
         perror("Error opening file for writing");
-        exit(EXIT_FAILURE);
+        pthread_exit(EXIT_FAILURE);
     }
 
     // Receive data from the server
@@ -43,7 +43,7 @@ void *receive_data(void *connfd_ptr)
         {
             perror("Receive failed");
             fclose(fp);
-            exit(EXIT_FAILURE);
+            pthread_exit(EXIT_FAILURE);
         }
         else if (num_bytes == 0)
         {
@@ -64,11 +64,12 @@ void *receive_data(void *connfd_ptr)
         bytes_recv += num_bytes; // Update the total received byte count
     }
 
-    // Close the file
+    // Close the file and socket
     fclose(fp);
+    close(connfd);
 
     // Log the total number of bytes received
-    printf("Total Bytes Received: %d B\n", bytes_recv);
+    printf("Received %d Bytes in total\n", bytes_recv);
 
     // Proper exit from thread function
     pthread_exit(NULL);
@@ -121,11 +122,20 @@ int main(int argc, char *argv[])
 
     while (1)
     {
+        // Allocate memory for connfd
+        int *connfd = malloc(sizeof(int)); // Allocate memory for connfd
+        if (connfd == NULL)
+        {
+            perror("Failed to allocate memory for connfd");
+            continue;
+        }
+
         // Accept incoming client connection
-        int connfd = accept(sockfd, (SA *)&clientaddr, &len);
-        if (connfd < 0)
+        *connfd = accept(sockfd, (SA *)&clientaddr, &len);
+        if (*connfd < 0)
         {
             perror("Server accept failed");
+            free(connfd);
             exit(EXIT_FAILURE);
         }
         printf("Server accepted the client...\n");
@@ -134,29 +144,30 @@ int main(int argc, char *argv[])
         struct linger so_linger;
         so_linger.l_onoff = 1;   // Enable SO_LINGER
         so_linger.l_linger = 30; // Wait for 30 seconds for the connection to close
-        if (setsockopt(connfd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger)) < 0)
+        if (setsockopt(*connfd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger)) < 0)
         {
             perror("SO_LINGER failure");
         }
 
         // Set TCP_NODELAY option to disable Nagle's algorithm
-        if (setsockopt(connfd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int)) < 0)
+        if (setsockopt(*connfd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int)) < 0)
         {
             perror("TCP_NODELAY failure");
         }
 
         // Set the receive buffer size to the defined value
-        if (setsockopt(connfd, SOL_SOCKET, SO_RCVBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
+        if (setsockopt(*connfd, SOL_SOCKET, SO_RCVBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
         {
             perror("SO_RCVBUFFORCE failure");
         }
 
         // Create a new thread for the connection handling
         pthread_t thread_id;
-        if (pthread_create(&thread_id, NULL, receive_data, (void *)(intptr_t)connfd) < 0)
+        if (pthread_create(&thread_id, NULL, receive_data, connfd) != 0)
         {
             perror("Could not create thread");
-            close(connfd);
+            close(*connfd);
+            free(connfd);
             continue;
         }
 
