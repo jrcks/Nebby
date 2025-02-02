@@ -18,6 +18,9 @@ bandwidth=$4
 buffer_size=$5
 url=$6
 
+# Replace - with _ in the cca name (required by analysis scripts)
+cca=$(echo "$cca" | tr '-' '_')
+
 # Do you want to delete the original .pcap file after conversion?
 delete_pcap_after_conversion=True
 
