@@ -939,11 +939,16 @@ for web in too_much_error:
 
 #importing important data
 import pickle
-scaled_vals = pickle.load(open("scaled_vals.txt","rb"))
-classifiers = pickle.load(open("classifiers.txt","rb"))
-count_to_mp = pickle.load(open("count_to_mp.txt","rb"))
 
-cc_degree = {'bic': 1,
+# Assumes that these files are located in the same directory as the script
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
+scaled_vals = pickle.load(open(script_dir + "/scaled_vals.txt","rb"))
+classifiers = pickle.load(open(script_dir + "/classifiers.txt","rb"))
+count_to_mp = pickle.load(open(script_dir + "/count_to_mp.txt","rb"))
+
+cc_degree = {
+ 'bic': 1,
  'dctcp': 2,
  'highspeed': 2,
  'htcp': 3,
@@ -954,7 +959,8 @@ cc_degree = {'bic': 1,
  'yeah': 1,
  'cubic': 3,
  'reno': 2,
-'cubicQ':3}
+ 'cubicQ':3
+}
 degrees = [1,2,3]
 
 web_data = {}
