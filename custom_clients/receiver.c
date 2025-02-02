@@ -16,8 +16,11 @@
 #define SA struct sockaddr
 
 // Function to receive data from the server and store it in a file
-void receive_data(int connfd)
+void *receive_data(int *connfd_ptr)
 {
+    int connfd = *((int *)connfd_ptr);
+    free(connfd_ptr); // Free the memory allocated for connfd_ptr
+
     // Buffer to store received data temporarily
     char buff[BUFFSIZE];
     bzero(buff, sizeof(buff));
@@ -66,6 +69,9 @@ void receive_data(int connfd)
 
     // Log the total number of bytes received
     printf("Total Bytes Received: %d B\n", bytes_recv);
+
+    // Proper exit from thread function
+    pthread_exit(NULL);
 }
 
 // Main client function
@@ -145,12 +151,20 @@ int main(int argc, char *argv[])
             perror("SO_RCVBUFFORCE failure");
         }
 
-        // Process received data
-        receive_data(connfd);
+        // Create a new thread for the connection handling
+        pthread_t thread_id;
+        if (pthread_create(&thread_id, NULL, receive_data, connfd) < 0)
+        {
+            perror("Could not create thread");
+            close(connfd);
+            continue;
+        }
 
-        // Close the connection
-        close(connfd);
+        // Detach the thread to avoid memory leaks
+        pthread_detach(thread_id);
     }
 
+    // Close the listening socket when done
+    close(sockfd);
     return 0;
 }
