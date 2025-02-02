@@ -120,10 +120,9 @@ int main(int argc, char *argv[])
     {
         // Accept incoming client connection
         int connfd = accept(sockfd, (SA *)&clientaddr, &len);
-        if (*connfd < 0)
+        if (connfd < 0)
         {
             perror("Server accept failed");
-            free(connfd);
             exit(EXIT_FAILURE);
         }
 
@@ -153,19 +152,19 @@ int main(int argc, char *argv[])
             struct linger so_linger;
             so_linger.l_onoff = 1;   // Enable SO_LINGER
             so_linger.l_linger = 30; // Wait for 30 seconds for the connection to close
-            if (setsockopt(*connfd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger)) < 0)
+            if (setsockopt(connfd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger)) < 0)
             {
                 perror("SO_LINGER failure");
             }
 
             // Set TCP_NODELAY option to disable Nagle's algorithm
-            if (setsockopt(*connfd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int)) < 0)
+            if (setsockopt(connfd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int)) < 0)
             {
                 perror("TCP_NODELAY failure");
             }
 
             // Set the receive buffer size to the defined value
-            if (setsockopt(*connfd, SOL_SOCKET, SO_RCVBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
+            if (setsockopt(connfd, SOL_SOCKET, SO_RCVBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
             {
                 perror("SO_RCVBUFFORCE failure");
             }
