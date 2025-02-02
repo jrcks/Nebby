@@ -71,11 +71,11 @@ fi
 rm -f "$trace_file"
 touch "$trace_file"
 
-num=$(($bandwidth/12))
+num_entries=$((bandwidth / 12))
 
 # Generate bandwidth trace entries
-for (( i=1; i<=$num; i++)); do
-    echo $(($(($i*1000))/$num)) >> "$trace_file"
+for ((i = 1; i <= num_entries; i++)); do
+    echo $(( (i * 1000) / num_entries )) >> "$trace_file"
 done
 
 # Enable IP forwarding
@@ -130,5 +130,4 @@ killall iperf iperf3 tcpdump mm-delay mm-link 2>/dev/null
 
 # Completion message
 echo "[run_test.sh] Test completed successfully."
-
 exit 0

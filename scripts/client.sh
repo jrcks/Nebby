@@ -36,16 +36,16 @@ sudo sysctl net.ipv4.tcp_sack=0 1>/dev/null
 
 # === wget client === #
 # Run wget with the specified url
-# echo "[client.sh] Executing wget for the url: $url"
-# if [[ -n "$wget_output" ]]; then
-#     # If wget_output is set
-#     echo "$cca" >>"$wget_output"
-#     echo "$url" >>"$wget_output"
-#     wget -U Mozilla --tries=1 --timeout=30 "$url" -O "$output_dir/index.html" &>>"$wget_output"
-# else
-#     # If wget_output is not set
-#     wget -U Mozilla --tries=1 --timeout=30 "$url" -O "$output_dir/index.html"
-# fi
+echo "[client.sh] Executing wget for the url: $url"
+if [[ -n "$wget_output" ]]; then
+    # If wget_output is set
+    echo "$cca" >>"$wget_output"
+    echo "$url" >>"$wget_output"
+    wget -U Mozilla --tries=1 --timeout=30 "$url" -O "$output_dir/index.html" &>>"$wget_output"
+else
+    # If wget_output is not set
+    wget -U Mozilla --tries=1 --timeout=30 "$url" -O "$output_dir/index.html"
+fi
 
 # === selenium client === #
 # Run the selenium client
@@ -59,10 +59,10 @@ sudo sysctl net.ipv4.tcp_sack=0 1>/dev/null
 # cd - 1> /dev/null
 
 # Or run the custom c sender
-cd ../custom_clients
-gcc ./sender.c -o ./sender -lpthread
-sudo ./sender "$url" "$cca" "./websites/index.html"
-cd - 1>/dev/null
+# cd ../custom_clients
+# gcc ./sender.c -o ./sender -lpthread
+# sudo ./sender "$url" "$cca" "./websites/index.html"
+# cd - 1>/dev/null
 
 # Wait for any background processes to complete
 sleep 1
