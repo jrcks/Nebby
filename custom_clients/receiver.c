@@ -5,6 +5,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <pthread.h>
@@ -16,21 +17,19 @@
 #define SA struct sockaddr
 
 // Function to receive data from the server and store it in a file
-void *receive_data(void *connfd_ptr)
+void receive_data(int connfd)
 {
-    int connfd = *((int *)connfd_ptr);
-    free(connfd_ptr); // Free the memory allocated for connfd_ptr
-
     // Buffer to store received data temporarily
     char buff[BUFFSIZE];
     bzero(buff, sizeof(buff));
+    pid_t pid = getpid();
 
     // Open the file for writing
     FILE *fp = fopen(OUT_FILE, "w+");
     if (fp == NULL)
     {
         perror("Error opening file for writing");
-        pthread_exit(EXIT_FAILURE);
+        return;
     }
 
     // Receive data from the server
@@ -42,13 +41,13 @@ void *receive_data(void *connfd_ptr)
         if (num_bytes < 0)
         {
             perror("Receive failed");
-            fclose(fp);
-            pthread_exit(EXIT_FAILURE);
+            return;
         }
         else if (num_bytes == 0)
         {
             break; // Connection has been closed by the server
         }
+        printf("[%d] Received %d Bytes\n", pid, num_bytes);
 
         // Write received bytes to the file
         size_t written = fwrite(buff, 1, num_bytes, fp);
@@ -69,13 +68,10 @@ void *receive_data(void *connfd_ptr)
     close(connfd);
 
     // Log the total number of bytes received
-    printf("Received %d Bytes in total\n", bytes_recv);
-
-    // Proper exit from thread function
-    pthread_exit(NULL);
+    printf("[%d] Received %d Bytes in total\n", pid, bytes_recv);
 }
 
-// Main client function
+// Main receiver function
 int main(int argc, char *argv[])
 {
     // Create a new socket
@@ -122,57 +118,67 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-        // Allocate memory for connfd
-        int *connfd = malloc(sizeof(int)); // Allocate memory for connfd
-        if (connfd == NULL)
-        {
-            perror("Failed to allocate memory for connfd");
-            continue;
-        }
-
         // Accept incoming client connection
-        *connfd = accept(sockfd, (SA *)&clientaddr, &len);
+        int connfd = accept(sockfd, (SA *)&clientaddr, &len);
         if (*connfd < 0)
         {
             perror("Server accept failed");
             free(connfd);
             exit(EXIT_FAILURE);
         }
-        printf("Server accepted the client...\n");
 
-        // Set SO_LINGER option to control the behavior on shutdown
-        struct linger so_linger;
-        so_linger.l_onoff = 1;   // Enable SO_LINGER
-        so_linger.l_linger = 30; // Wait for 30 seconds for the connection to close
-        if (setsockopt(*connfd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger)) < 0)
+        // Create a new process to handle the client connection
+        pid_t pid = fork();
+        if (pid < 0)
         {
-            perror("SO_LINGER failure");
-        }
-
-        // Set TCP_NODELAY option to disable Nagle's algorithm
-        if (setsockopt(*connfd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int)) < 0)
-        {
-            perror("TCP_NODELAY failure");
-        }
-
-        // Set the receive buffer size to the defined value
-        if (setsockopt(*connfd, SOL_SOCKET, SO_RCVBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
-        {
-            perror("SO_RCVBUFFORCE failure");
-        }
-
-        // Create a new thread for the connection handling
-        pthread_t thread_id;
-        if (pthread_create(&thread_id, NULL, receive_data, connfd) != 0)
-        {
-            perror("Could not create thread");
-            close(*connfd);
-            free(connfd);
+            perror("Fork failed");
+            close(connfd);
             continue;
         }
 
-        // Detach the thread to avoid memory leaks
-        pthread_detach(thread_id);
+        // In the child process
+        if (pid == 0)
+        {
+            // Get the process ID
+            pid = getpid();
+
+            // Child doesn't need the listening socket
+            close(sockfd);
+
+            // Get client's IP address
+            char *client_ip = inet_ntoa(clientaddr.sin_addr);
+            printf("[%d] Server accepted the client with IP %s\n", pid, client_ip ? client_ip : "unknown");
+
+            // Set SO_LINGER option to control the behavior on shutdown
+            struct linger so_linger;
+            so_linger.l_onoff = 1;   // Enable SO_LINGER
+            so_linger.l_linger = 30; // Wait for 30 seconds for the connection to close
+            if (setsockopt(*connfd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger)) < 0)
+            {
+                perror("SO_LINGER failure");
+            }
+
+            // Set TCP_NODELAY option to disable Nagle's algorithm
+            if (setsockopt(*connfd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int)) < 0)
+            {
+                perror("TCP_NODELAY failure");
+            }
+
+            // Set the receive buffer size to the defined value
+            if (setsockopt(*connfd, SOL_SOCKET, SO_RCVBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
+            {
+                perror("SO_RCVBUFFORCE failure");
+            }
+
+            // Receive data from the sender
+            receive_data(connfd);
+
+            // Exit after receiving data
+            exit(EXIT_SUCCESS);
+        }
+
+        // Close the connection in the parent process
+        close(connfd);
     }
 
     // Close the listening socket when done
