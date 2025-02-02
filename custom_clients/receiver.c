@@ -16,7 +16,7 @@
 #define SA struct sockaddr
 
 // Function to receive data from the server and store it in a file
-void *receive_data(int *connfd_ptr)
+void *receive_data(void *connfd_ptr)
 {
     int connfd = *((int *)connfd_ptr);
     free(connfd_ptr); // Free the memory allocated for connfd_ptr
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
 
         // Create a new thread for the connection handling
         pthread_t thread_id;
-        if (pthread_create(&thread_id, NULL, receive_data, connfd) < 0)
+        if (pthread_create(&thread_id, NULL, receive_data, (void *)(intptr_t)connfd) < 0)
         {
             perror("Could not create thread");
             close(connfd);
