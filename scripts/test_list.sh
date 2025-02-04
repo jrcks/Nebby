@@ -26,9 +26,11 @@ fi
 
 
 echo "Num-Urls: $num"
+echo "Started at: $(date '+%d/%m/%Y %H:%M:%S')"
+SECONDS=0
 
 # Loop through each line number from 1 to the number of candidates
-for ((i = 1; i <= num; i++)); do
+for ((i = 1; i <= 0; i++)); do
     # Adding 'p' to the line number for the sed command
     line_number="${i}p"
 
@@ -63,4 +65,7 @@ for ((i = 1; i <= num; i++)); do
     sleep 0.1
 done
 
+duration=$SECONDS
+
+echo "Finished at: $(date '+%d/%m/%Y %H:%M:%S') in $((duration / 60)) minutes and $((duration % 60)) seconds"
 echo "DONE!"
