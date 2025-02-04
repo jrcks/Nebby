@@ -112,8 +112,9 @@ def plot_one_bt(f, p,t=1):
     if p == 'y':
         plot_d(ax, time, data, "b", "Smoothened",alpha=0.5)
         ax.legend()
-        print("Saved plot to ./plots/"+tag+".png")
-        plt.savefig("./plots/"+tag+".png")
+        plotfile_name = tag + "-" + str(pre) + "-" + str(post) + "-" + fs[3] + "-" + fs[4] + ".png"
+        print("Saved plot to ./plots/"+plotfile_name)
+        plt.savefig("./plots/"+plotfile_name)
         #plt.show()
         plt.close(fig)
 #     return time, data, grad_time, grad_data, rtt
