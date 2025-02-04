@@ -16,7 +16,7 @@ echo -e "Currently loaded congestion control algorithms: ${BLD}$loaded_algos${RS
 
 # Get list of available congestion control algorithms
 kernel_version=$(uname -r)
-available_algos=$(find /lib/modules/"$kernel_version"/kernel/net/ipv4/ -name 'tcp_*.ko.zst' -exec basename {} .ko.zst \; | sed 's/^tcp_//' | tr '\n' ',' | sed 's/,$//')
+available_algos=$(find /lib/modules/"$kernel_version"/kernel/net/ipv4/ -name 'tcp_*.ko*' -exec basename {} \; | sed 's/^tcp_//' | sed 's/\.ko.*$//' | tr '\n' ',' | sed 's/,$//')
 
 # Display available algorithms
 if [ -n "$available_algos" ]; then
