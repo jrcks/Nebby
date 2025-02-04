@@ -312,7 +312,6 @@ int main(int argc, char *argv[])
     socklen_t len = sizeof(clientaddr);
 
     // Serve until user presses ctrl + c
-    int id = 0;
     while (1)
     {
         // Accept incoming client connection
@@ -322,66 +321,89 @@ int main(int argc, char *argv[])
             perror("Server accept failed");
             exit(EXIT_FAILURE);
         }
-        printf("[#%d] Server accepted the client...\n", ++id);
-
-        // Set TCP_NODELAY option to disable Nagle's algorithm
-        if (setsockopt(connfd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int)) < 0)
+        // Create a new process to handle the client connection
+        pid_t pid = fork();
+        if (pid < 0)
         {
-            perror("TCP_NODELAY failure");
+            perror("Fork failed");
+            close(connfd);
+            continue;
         }
 
-        // Clear TCP_CORK option for each connection
-        if (setsockopt(connfd, IPPROTO_TCP, TCP_CORK, &(int){0}, sizeof(int)) < 0)
+        // In the child process
+        if (pid == 0)
         {
-            perror("TCP_CORK failure");
+            // Get the process ID
+            pid = getpid();
+            printf("[%ld] Server accepted the client...\n", pid);
+
+            // Close the server socket
+            close(sockfd);
+
+            // Set TCP_NODELAY option to disable Nagle's algorithm
+            if (setsockopt(connfd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int)) < 0)
+            {
+                perror("TCP_NODELAY failure");
+            }
+
+            // Clear TCP_CORK option for each connection
+            if (setsockopt(connfd, IPPROTO_TCP, TCP_CORK, &(int){0}, sizeof(int)) < 0)
+            {
+                perror("TCP_CORK failure");
+            }
+
+            // TODO: Example value
+            // Set the busy poll option
+            if (setsockopt(connfd, SOL_SOCKET, SO_BUSY_POLL, &(int){50}, sizeof(int)) < 0)
+            {
+                perror("SO_BUSY_POLL failure");
+            }
+
+            // Set the send buffer size to the defined value
+            if (setsockopt(connfd, SOL_SOCKET, SO_SNDBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
+            {
+                perror("SO_SNDBUFFORCE failure");
+            }
+
+            // Enable TCP_QUICKACK option every connection to reduce acknowledgment latency
+            if (setsockopt(connfd, IPPROTO_TCP, TCP_QUICKACK, &(int){1}, sizeof(int)) < 0)
+            {
+                perror("TCP_QUICKACK failure");
+            }
+
+            // Set the congestion control algorithm
+            if (setsockopt(connfd, IPPROTO_TCP, TCP_CONGESTION, congestion_ctl, sizeof(congestion_ctl)) < 0)
+            {
+                perror("Congestion control algorithm failure");
+            }
+
+            // Prepare thread structure for recording
+            struct Thread_Record_Struct thread_record_struct = {.sockfd = connfd};
+            pthread_t tid;
+
+            // Create the thread for recording TCP statistics
+            if (pthread_create(&tid, NULL, thread_recording, &thread_record_struct) < 0)
+            {
+                perror("Failed to create thread");
+            }
+
+            // Send data
+            send_data(connfd, web_file);
+
+            // Save statistics after recording thread finishes
+            pthread_join(tid, NULL);
+            save_statistics(pid, thread_record_struct.recording_elems);
+
+            // Close the connection
+            close(connfd);
+            printf("[%ld] Server closed connection to client...\n", pid);
+
+            // Exit child after sending data
+            exit(EXIT_SUCCESS);
         }
 
-        // TODO: Example value
-        // Set the busy poll option
-        if (setsockopt(connfd, SOL_SOCKET, SO_BUSY_POLL, &(int){50}, sizeof(int)) < 0)
-        {
-            perror("SO_BUSY_POLL failure");
-        }
-
-        // Set the send buffer size to the defined value
-        if (setsockopt(connfd, SOL_SOCKET, SO_SNDBUFFORCE, &(int){BUFFSIZE}, sizeof(int)) < 0)
-        {
-            perror("SO_SNDBUFFORCE failure");
-        }
-
-        // Enable TCP_QUICKACK option every connection to reduce acknowledgment latency
-        if (setsockopt(connfd, IPPROTO_TCP, TCP_QUICKACK, &(int){1}, sizeof(int)) < 0)
-        {
-            perror("TCP_QUICKACK failure");
-        }
-
-        // Set the congestion control algorithm
-        if (setsockopt(connfd, IPPROTO_TCP, TCP_CONGESTION, congestion_ctl, sizeof(congestion_ctl)) < 0)
-        {
-            perror("Congestion control algorithm failure");
-        }
-
-        // Prepare thread structure for recording
-        struct Thread_Record_Struct thread_record_struct = {.sockfd = connfd};
-        pthread_t tid;
-
-        // Create the thread for recording TCP statistics
-        if (pthread_create(&tid, NULL, thread_recording, &thread_record_struct) < 0)
-        {
-            perror("Failed to create thread");
-        }
-        printf("Created a thread for recording.\n");
-
-        // Send data
-        send_data(connfd, web_file);
-
-        // Save statistics after recording thread finishes
-        pthread_join(tid, NULL);
-        save_statistics(id, thread_record_struct.recording_elems);
-
-        // Close the connection
+        // Close the connection in the parent process
         close(connfd);
-        printf("Server closed connection to client...\n");
     }
 
     return 0;
