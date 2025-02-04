@@ -22,12 +22,15 @@ available_algos=$(find /lib/modules/"$kernel_version"/kernel/net/ipv4/ -name 'tc
 if [ -n "$available_algos" ]; then
     echo -e "Currently available congestion control algorithms: ${BLD}$available_algos${RST}"
 else
-    echo -e "${RED}No available congestion control algorithms found.{$RST}" >&2
+    echo -e "${RED}No available congestion control algorithms found.${RST}" >&2
     exit 1
 fi
 
+# Remove diag from the list of available algorithms
+available_algos=$(echo "$available_algos" | sed 's/diag,//')
+
 # Load the available congestion control algorithms
-IFS=',' read -r -a algos <<< "$available_algos"
+IFS=',' read -r -a algos <<<"$available_algos"
 
 for algo in "${algos[@]}"; do
     algo=$(echo "$algo" | xargs) # Trim whitespace
