@@ -62,7 +62,7 @@ void check_file_exist(const char *filename)
     }
     else
     {
-        printf("The stats file %s exists\n", filename);
+        printf("The stats file %s already exists\n", filename);
     }
 }
 
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
-    printf("Socket successfully created..\n");
+    printf("Socket successfully created\n");
 
     // Set SO_REUSEADDR to reuse the same port
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0)
@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
         perror("Socket bind failed");
         exit(EXIT_FAILURE);
     }
-    printf("Socket successfully binded..\n");
+    printf("Socket successfully bound\n");
 
     // Prepare the server to listen for incoming connections
     if (listen(sockfd, 5) != 0)
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
         perror("Listen failed");
         exit(EXIT_FAILURE);
     }
-    printf("Server listening..\n");
+    printf("Server listening on port %d\n", PORT);
 
     // Initialize the length of the client address structure
     struct sockaddr_in clientaddr;
