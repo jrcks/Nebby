@@ -98,6 +98,7 @@ def plot_one_bt(f, p,t=1):
         data, time, retrans, OOA, DA = get_window(f,"n",t)
     if p == 'y':
         fig, ax = plt.subplots(1,1, figsize=(15,8))
+        plt.title(file_name)
         for t in retrans :
             plt.axvline(x = t, color = 'm',alpha=0.5)
         if t == 2:
@@ -122,6 +123,7 @@ def plot_one_bt(f, p,t=1):
         #   Or fixed with pygobject >= 3.47.0 (which is not available on Ubuntu 22.04)
         #   Workaround: pip install matplotlib==3.9.4
         plt.show()
+        plt.close(fig)
 #     return time, data, grad_time, grad_data, rtt
 #     print("Black : OOA, Green : DA, Magenta : RP")
     return time, data, retrans, rtt 
@@ -936,6 +938,10 @@ web_cc_mp, too_much_error = getBestDegree(web_mp,p=printOn)
 
 if len(too_much_error.keys())>1:
     print("NAN","High error while fitting polynomial")
+
+if (len(web_cc_mp) < 1):
+    print("NAN","web_cc_mp empty")
+    exit()
     
 print("")
 
