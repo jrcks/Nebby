@@ -7,7 +7,7 @@ echo "Checking folder $folder"
 
 for filter in ${filters[@]}; do
     echo "Checking filter $filter"
-    python3 final/check_cc_folder.py $folder $filter "$filter.res"
+    python3 final/check_cc_folder.py $folder $filter n "$filter.res"
 done
 
 if [ -z "$2" ]; then

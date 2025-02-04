@@ -83,6 +83,7 @@ def plot_one_bt(f, p,t=1):
     file_name = f.split("/")[-1]
     fs = file_name.split("-")
 
+    tag = fs[0]
     pre = int(fs[1])
     post = int(fs[2])
     rtt = float(((pre+post)*2))/1000
@@ -93,6 +94,7 @@ def plot_one_bt(f, p,t=1):
         data, time, retrans, OOA, DA = get_window(f,"n",t)
     if p == 'y':
         fig, ax = plt.subplots(1,1, figsize=(15,8))
+        plt.title(file_name)
         for t in retrans :
             plt.axvline(x = t, color = 'm',alpha=0.5)
         if t == 2:
@@ -110,8 +112,10 @@ def plot_one_bt(f, p,t=1):
     if p == 'y':
         plot_d(ax, time, data, "b", "Smoothened",alpha=0.5)
         ax.legend()
-#             plt.savefig("./plots/"+f+".png")
-        plt.show()
+        print("Saved plot to ./plots/"+tag+".png")
+        plt.savefig("./plots/"+tag+".png")
+        #plt.show()
+        plt.close(fig)
 #     return time, data, grad_time, grad_data, rtt
 #     print("Black : OOA, Green : DA, Magenta : RP")
     return time, data, retrans, rtt 
@@ -565,18 +569,24 @@ def getDivision(classi, test_files):
  
 import os 
 
-if (len(sys.argv) < 3):
-    print("Usage: python3 checkBBR.py <folder> <filter_file> [output_file]")
+if (len(sys.argv) < 4):
+    print("Usage: python3 checkBBR.py <folder> <filter_file> <print_plots y/n> [output_file]")
     exit()
 
 results = {}
 folder=sys.argv[1]+"/"
 filter_file = sys.argv[2]
 
-if len(sys.argv) < 4:
+print_plots = sys.argv[3]
+
+if print_plots != "y" and print_plots != "n":
+    print("Usage: python3 checkBBR.py <folder> <filter_file> <print_plots y/n> [output_file]")
+    exit()
+
+if len(sys.argv) < 5:
     output_file = "a_results"
 else:
-    output_file = sys.argv[3]
+    output_file = sys.argv[4]
 
 files = []
 for f in os.listdir(folder):
@@ -585,7 +595,7 @@ for f in os.listdir(folder):
 files = sorted(files)
 
 print("...checking for BBR")
-classi = checkBBR(files,"n")
+classi = checkBBR(files, p=print_plots)
 
 yes,no,maybe,nan = getDivision(classi,files)
 
