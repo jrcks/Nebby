@@ -538,13 +538,13 @@ def checkBBR(files,p="n"):
             classi.append(new_message)
     return classi
 
-def file_filter(file):
+def file_filter(file, filter_file="0-50-200-1"):
     if "udp.csv" in file:
         return 0
-    else :
-        if "0-50-200-2" in file:
+    else:
+        if filter_file in file:
             return 1
-        else :
+        else:
             return 0
  
 def getDivision(classi, test_files):
@@ -564,17 +564,23 @@ def getDivision(classi, test_files):
     return yes, no,maybe, nan
  
 import os 
+
+if (len(sys.argv) < 3):
+    print("Usage: python3 checkBBR.py <folder> <filter_file> [output_file]")
+    exit()
+
 results = {}
 folder=sys.argv[1]+"/"
+filter_file = sys.argv[2]
 
-if len(sys.argv) < 3 :
+if len(sys.argv) < 4:
     output_file = "a_results"
 else:
-    output_file = sys.argv[2]
+    output_file = sys.argv[3]
 
 files = []
 for f in os.listdir(folder):
-    if file_filter(f) == 1:
+    if file_filter(f, filter_file) == 1:
         files.append(folder+f)
 files = sorted(files)
 
@@ -583,7 +589,7 @@ classi = checkBBR(files,"n")
 
 yes,no,maybe,nan = getDivision(classi,files)
 
-print("BBR : ",len(yes)+len(maybe),"Not BBR : ",len(no),"BIF ERROR : ",len(nan))
+print("BBR: ",len(yes)+len(maybe),"Not BBR: ",len(no),"BIF ERROR: ",len(nan))
 
 for f in yes:
     file_name = f.split("/")[-1]
@@ -593,7 +599,7 @@ for f in yes:
 for f in maybe:
     file_name = f.split("/")[-1]
     web_name = file_name.split("-")[0]
-    results[web_name] = "BBR"
+    results[web_name] = "BBR(Maybe)"
 
 for f in nan:
     file_name = f.split("/")[-1]
@@ -795,6 +801,9 @@ def normalize(time, data, rtt, bdp):
 from statistics import mean 
 def get_feature_degree_R(files,ss=225,p='n',ft_thresh=3,max_deg=MAX_DEG):
     results = getRed_R(files,ss,p=p,ft_thresh=ft_thresh)
+    if (len(results) == 0):
+        print("get_feature_degree_R: No results found")
+        return {}
     count_features = 0
     mp = {}
     for item in results :
@@ -809,8 +818,8 @@ def get_feature_degree_R(files,ss=225,p='n',ft_thresh=3,max_deg=MAX_DEG):
                 curr_rtt = item[ele]
             if "bdp"==name_list[1] :
                 curr_bdp = item[ele]
-#         print(website)
-#         print(curr_data, curr_time)
+        #print(website)
+        #print(curr_time, curr_data)
         curr_time, curr_data = normalize(curr_time, curr_data, curr_rtt, curr_bdp)
         count_features += 1
         max_deg,p_net,mse_l = get_degree_all(curr_time, curr_data,p=p,max_deg=max_deg)
@@ -1008,6 +1017,10 @@ for degree in degrees:
         data.append(scaled_web_data[degree]['data'][i])
         labels.append(scaled_web_data[degree]['labels'][i])
 
+    if (len(data) == 0):
+        print("No data for degree", degree)
+        continue
+    
     clf = classifiers[degree]
     estimates = clf.predict(data)
     prob = clf.predict_proba(data)
