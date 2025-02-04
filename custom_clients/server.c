@@ -362,7 +362,7 @@ int main(int argc, char *argv[])
         }
 
         // Prepare thread structure for recording
-        struct Thread_Record_Struct thread_record_struct = {sockfd = connfd};
+        struct Thread_Record_Struct thread_record_struct = {.sockfd = connfd};
         pthread_t tid;
 
         // Create the thread for recording TCP statistics
