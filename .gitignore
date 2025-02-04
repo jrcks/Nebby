@@ -1,6 +1,7 @@
 # Ignore all log files and old measurements
 logs/
 measurements/*
+measurements-*/*
 
 # Ignore VS Code files
 .vscode
