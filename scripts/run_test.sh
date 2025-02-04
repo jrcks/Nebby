@@ -125,7 +125,7 @@ tshark -r "$pcap_file" -Y "udp" -E header=y -E separator=, -E quote=d >"$output_
 
 # Delete PCAP file if the parameter is True
 if [ "$delete_pcap_after_conversion" == "True" ]; then
-    rm "$pcap_file"
+    rm -f "$pcap_file"
 fi
 
 # Log the completion of the conversion
