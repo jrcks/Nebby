@@ -66,4 +66,4 @@ fi
 
 # Wait for any background processes to complete
 sleep 1
-echo "DONE!"
+echo "[client.sh] Finished running client"

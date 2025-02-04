@@ -79,7 +79,7 @@ num_entries=$((bandwidth / 12))
 
 # Generate bandwidth trace entries
 for ((i = 1; i <= num_entries; i++)); do
-    echo $(( (i * 1000) / num_entries )) >> "$trace_file"
+    echo $(((i * 1000) / num_entries)) >>"$trace_file"
 done
 
 # Enable IP forwarding
@@ -90,6 +90,9 @@ mm-delay "$predelay" ./btl.sh "$pcap_file" "$postdelay" "$bdp" "$aqm" "$cca" "$u
 
 # Stop the mm-delay command
 sudo killall mm-delay 2>/dev/null
+
+# Delete residual trace file
+rm -f "$trace_file"
 
 # +-------------------------------------+
 # | Convert received .pcap to .csv file |
@@ -121,7 +124,7 @@ tshark -r "$pcap_file" -T fields \
 tshark -r "$pcap_file" -Y "udp" -E header=y -E separator=, -E quote=d >"$output_dir/$cca-udp.csv"
 
 # Delete PCAP file if the parameter is True
-if [ "$delete_pcap_file" == "True" ]; then
+if [ "$delete_pcap_after_conversion" == "True" ]; then
     rm "$pcap_file"
 fi
 
