@@ -13,6 +13,9 @@ for cc in $variants; do
     echo "Testing congestion control: $cc"
     echo "==========================="
 
+    # Setting the congestion control algorithm
+    sudo /sbin/sysctl -w net.ipv4.tcp_congestion_control="$cc"
+
     # Run the test for the current variant
     ../run_test.sh "$cc" "$predelay" "$postdelay" "$linkspeed" "$buffsize"
     sleep 2
