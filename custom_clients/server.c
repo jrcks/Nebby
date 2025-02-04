@@ -335,7 +335,7 @@ int main(int argc, char *argv[])
         {
             // Get the process ID
             pid = getpid();
-            printf("[%ld] Server accepted the client...\n", pid);
+            printf("[%d] Server accepted the client...\n", pid);
 
             // Close the server socket
             close(sockfd);
@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
 
             // Close the connection
             close(connfd);
-            printf("[%ld] Server closed connection to client...\n", pid);
+            printf("[%d] Server closed connection to client...\n", pid);
 
             // Exit child after sending data
             exit(EXIT_SUCCESS);
