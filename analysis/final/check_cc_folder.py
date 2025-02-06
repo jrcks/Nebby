@@ -1049,16 +1049,13 @@ for degree in degrees:
 
 print("Writing result to", output_file)
 with open(output_file, "w") as f :
+    max_name = max([len(web) for web in results])
     for web in results:
-        formatted_string = f"{web:<40}{results[web]:<60}\n"
+        formatted_string = f"{web:<{max_name}} | {results[web]}\n"
         f.write(formatted_string)
 print("Finished")
 print("Results for", filter_file)
 for web in results:
-    formatted_string = f"{web:<40}{results[web]:<60}"
+    formatted_string = f"{web:<{max_name}} | {results[web]}"
     print(formatted_string)
 exit()
-
-
-
-
