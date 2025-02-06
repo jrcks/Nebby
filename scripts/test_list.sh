@@ -55,7 +55,7 @@ while IFS= read -r line && [ "$counter" -lt "$num_urls" ]; do
     IFS="/" read -ra parts <<<"$link"
 
     # Check if the link is accessible
-    wget --tries=1 --timeout=15 "$link" -O /dev/null
+    wget --tries=1 --timeout=15 -O /dev/null -q "$link"
     if [ $? -ne 0 ]; then
         base_link="${parts[0]}//${parts[2]}"
         echo -e "${BLD_YLW}Link not accessible. Going to base link: ${base_link}${RST}"
