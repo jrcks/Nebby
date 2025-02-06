@@ -50,8 +50,6 @@ trace_file="$output_dir/bw.trace"
 if [ ! -d "$output_dir" ]; then
     mkdir -p "$output_dir"
     echo "[run_test.sh] Folder '$output_dir' created."
-else
-    echo "[run_test.sh] Folder '$output_dir' already exists."
 fi
 
 # Kill any existing iperf, iperf3, tcpdump, and mm-delay processes
