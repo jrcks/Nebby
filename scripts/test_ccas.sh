@@ -11,6 +11,10 @@ url="$1"
 
 # Configuration Variables
 variants="bic cdg dctcp highspeed htcp hybla illinois lp nv scalable vegas veno westwood yeah cubic bbr reno"
+
+# NOTE: The following "available" CCAs are not detectable by Nebby:
+#       cdg hybla illinois nv vegas yeah"
+
 predelay=2
 postdelay=48
 linkspeed=200
