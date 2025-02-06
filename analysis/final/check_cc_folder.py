@@ -595,6 +595,11 @@ for f in os.listdir(folder):
         files.append(folder+f)
 files = sorted(files)
 
+if print_plots == "y" or print_plots == "n":
+    # create plots folder if not exists
+    if not os.path.exists("plots"):
+        os.makedirs("plots")
+
 print("...checking for BBR")
 classi = checkBBR(files, p=print_plots)
 
