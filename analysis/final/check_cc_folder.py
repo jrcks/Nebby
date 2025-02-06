@@ -16,6 +16,8 @@ import statistics
 from statistics import mean, pstdev
 import pandas as pd
 
+from sklearn.naive_bayes import GaussianNB
+
 
 yellow = '\033[93m'
 green = '\033[92m'
@@ -167,12 +169,13 @@ def get_plot_features(curr_file, p):
     return time, data, features
 
 
+# unused
 SHOW=True
 MULTI_GRAPH=False
 SMOOTHENING=False
 ONLY_STATS=False
 s_factor=0.9
-
+#end unused
 
 PKT_SIZE = 88
 
@@ -963,6 +966,7 @@ web_mp = get_feature_degree_R(no,ss=225,p="n",ft_thresh=1,max_deg=3)
 web_cc_mp, too_much_error = getBestDegree(web_mp,p="n")
 
 for web in too_much_error:
+    # MSE: Mean squared error
     results[web] = "TOO MUCH MSE ERROR"
 
 #importing important data
@@ -971,9 +975,32 @@ import pickle
 # Assumes that these files are located in the same directory as the script
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-scaled_vals = pickle.load(open(script_dir + "/scaled_vals.txt","rb"))
-classifiers = pickle.load(open(script_dir + "/classifiers.txt","rb"))
-count_to_mp = pickle.load(open(script_dir + "/count_to_mp.txt","rb"))
+scaled_vals: dict = pickle.load(open(script_dir + "/scaled_vals.txt","rb"))
+#Degree 1: bic, scalable, yeah, scaler
+#Degree 2: westwood, scaler, combined
+#Degree 3: htcp, veno, cubic, cubicQ, scaler
+
+classifiers: dict = pickle.load(open(script_dir + "/classifiers.txt","rb"))
+# Degree 1: 1D GaussianNB
+# Degree 2: 2D GaussianNB
+# Degree 3: 3D GaussianNB
+
+count_to_mp: dict = pickle.load(open(script_dir + "/count_to_mp.txt","rb"))
+# Degree 1
+#    1 bic
+#    2 scalable
+#    3 yeah
+# Degree 2
+#    1 dctcp
+#    2 highspeed
+#    3 lp
+#    4 westwood
+#    5 reno
+# Degree 3
+#    1 htcp
+#    2 veno
+#    3 cubic
+#    4 cubicQ
 
 cc_degree = {
  'bic': 1,
@@ -1012,6 +1039,7 @@ for degree in degrees:
     x = scaled_web_data[degree]['data']
     l = scaled_web_data[degree]['labels'] 
     for cc in scaled_vals[degree]:
+        cc: str
         if cc == 'scaler':
             continue
         for i in range(len(x)):
@@ -1040,7 +1068,7 @@ for degree in degrees:
         print("No data for degree", degree)
         continue
     
-    clf = classifiers[degree]
+    clf: GaussianNB = classifiers[degree]
     estimates = clf.predict(data)
     prob = clf.predict_proba(data)
     cc_predict = [count_to_mp[degree][i] for i in estimates]
