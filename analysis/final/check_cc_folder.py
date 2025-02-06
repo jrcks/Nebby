@@ -92,7 +92,7 @@ def plot_one_bt(f, p,t=1):
         data, time, retrans = get_window(f,"n",t)
     elif t==2:
         data, time, retrans, OOA, DA = get_window(f,"n",t)
-    if p == 'y':
+    if p == 'y' or print_plots == 'y':
         fig, ax = plt.subplots(1,1, figsize=(15,8))
         plt.title(file_name)
         for t in retrans :
@@ -109,7 +109,7 @@ def plot_one_bt(f, p,t=1):
 #         print(len(time), len(data))
     time, data = smoothen(time, data, rtt)
 #         print(len(time), len(data))
-    if p == 'y':
+    if p == 'y' or print_plots == 'y':
         plot_d(ax, time, data, "b", "Smoothened",alpha=0.5)
         ax.legend()
         plotfile_name = tag + "-" + str(pre) + "-" + str(post) + "-" + fs[3] + "-" + fs[4] + ".png"
@@ -595,7 +595,7 @@ for f in os.listdir(folder):
         files.append(folder+f)
 files = sorted(files)
 
-if print_plots == "y" or print_plots == "n":
+if print_plots == "y":
     # create plots folder if not exists
     if not os.path.exists("plots"):
         os.makedirs("plots")
