@@ -29,7 +29,7 @@ delete_pcap_after_conversion=True
 disable_SACK=False
 
 # Do you want to export UDP traffic?
-$export_udp=False
+export_udp=False
 
 # Set Buffer AQM (Active Queue Management) type
 aqm="droptail"
