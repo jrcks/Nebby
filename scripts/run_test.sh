@@ -28,6 +28,9 @@ delete_pcap_after_conversion=True
 # Do you want to disable TCP SACK?
 disable_SACK=False
 
+# Do you want to export UDP traffic?
+$export_udp=False
+
 # Set Buffer AQM (Active Queue Management) type
 aqm="droptail"
 
@@ -120,8 +123,10 @@ tshark -r "$pcap_file" -T fields \
     -E quote=d \
     -E occurrence=f >"$output_dir/$cca-$predelay-$postdelay-$bandwidth-$buffer_size-tcp.csv"
 
-# Capture UDP traffic
-tshark -r "$pcap_file" -Y "udp" -E header=y -E separator=, -E quote=d >"$output_dir/$cca-udp.csv"
+# Capture UDP traffic if the parameter is True
+if [ "$export_udp" == "True" ]; then
+    tshark -r "$pcap_file" -Y "udp" -E header=y -E separator=, -E quote=d >"$output_dir/$cca-$predelay-$postdelay-$bandwidth-$buffer_size-udp.csv"
+fi
 
 # Delete PCAP file if the parameter is True
 if [ "$delete_pcap_after_conversion" == "True" ]; then
