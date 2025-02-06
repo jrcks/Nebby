@@ -690,7 +690,7 @@ def adjust(time, data):
 
 
 def getRed_R(files,ss=125,p="y", ft_thresh=100):
-    results = []
+    fn_results = []
     for curr_file in files : 
         print(curr_file)
         file, folder_path = split_path(curr_file)
@@ -700,6 +700,9 @@ def getRed_R(files,ss=125,p="y", ft_thresh=100):
         bdp = float(rtt*1000*int(f_split[bw_i])*int(f_split[bf_i]))/8
         time, data, features = get_plot_features(curr_file, p=p)
         count = 1
+        if len(features) == 0:
+            # This file gets dropped after this, so we have to save the result here
+            results[v] = "NAN - NO FEATURES"
         for ft in features : 
             if count > ft_thresh:
                 break
@@ -718,13 +721,13 @@ def getRed_R(files,ss=125,p="y", ft_thresh=100):
 #                 plt.scatter(tr_time, tr_data, c='r', s=10)
                 plt.title(v)
                 plt.show()
-            results.append(
+            fn_results.append(
                 {v+"_"+"data"+"_"+str(count):tr_data,
                      v+"_"+"time"+"_"+str(count):tr_time,
                         v+"_"+"rtt"+"_"+str(count):rtt, 
                              v+"_"+"bdp"+"_"+str(count):bdp})
             count+=1
-    return results
+    return fn_results
 
 def getRed(files,ss=125,p="y", ft_thresh=100):
     results = []
