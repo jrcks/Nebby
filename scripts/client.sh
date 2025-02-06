@@ -32,7 +32,7 @@ sudo sysctl net.ipv4.tcp_sack=0 1>/dev/null
 # === iperf3 client === #
 # Example client launch with iperf3
 # echo "[client.sh] Running iperf3 with congestion control: $cca"
-# iperf3 -c "$url" -p 2500 -C "$cca" -t 60 -R --connect-timeout 2000 -M 100
+# iperf3 -c "$url" -p 8081 -R -C "$cca" -t 60 -M 100
 
 # === wget client === #
 # Run wget with the specified url
