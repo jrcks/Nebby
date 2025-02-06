@@ -19,6 +19,14 @@ postdelays=(50 100)
 bandwidths=(200 1000)
 buffersizes=(1 2)
 
+# Formatting variables
+INV="\033[7m"
+RST_INV="\033[27m"
+BLD_RED="\033[1;31m"
+BLD_GRN="\033[1;32m"
+BLD_YLW="\033[1;33m"
+RST="\033[0m"
+
 # Get the number of URLs in the list
 total_urls=$(wc -l <"$url_list")
 
@@ -50,17 +58,14 @@ while IFS= read -r line && [ "$counter" -lt "$num_urls" ]; do
     wget --tries=1 --timeout=15 "$link" -O /dev/null
     if [ $? -ne 0 ]; then
         base_link="${parts[0]}//${parts[2]}"
-        echo "Link not accessible. Going to base link: $base_link"
+        echo -e "${BLD_YLW}Link not accessible. Going to base link: ${base_link}${RST}"
         link="$base_link"
-        # Uncomment the line below if you want to try the base link
-        # wget -U Mozilla "$base_link" -O index
     fi
 
     # Output the current site and URL with counter
-    echo "==================="
-    echo "[$counter / $num_urls] Processing: $site"
-    echo "URL: $link"
-    echo "+++++++++++++++++++"
+    echo -e "${INV}                                        "
+    echo -e "[${counter} / ${num_urls}] Processing: ${site}\nURL: ${link}"
+    echo -e "                                        ${RST_INV}"
 
     for pre in "${predelays[@]}"; do
         for post in "${postdelays[@]}"; do
@@ -71,21 +76,21 @@ while IFS= read -r line && [ "$counter" -lt "$num_urls" ]; do
 
                     # Check for errors in test execution
                     if [[ $? -ne 0 ]]; then
-                        echo "Test failed for $site at $link"
+                        echo -e "${BLD_RED}Test failed for ${site} at ${link}${RST}"
                         exit 1
                     fi
 
                     sleep 0.1
-                    echo "-------------------"
+                    echo "________________________________________"
                 done
             done
         done
     done
 
-    echo "==================="
+    echo -e "\n"
     sleep 0.1
 
 done <"$url_list"
 
 duration=$SECONDS
-echo "Finished at: $(date '+%d/%m/%Y %H:%M:%S') in $((duration / 60)) minutes and $((duration % 60)) seconds"
+echo -e "${BLD_GRN}Finished at $(date '+%d/%m/%Y %H:%M:%S') in $((duration / 60)) minutes and $((duration % 60)) seconds\033[0m"
