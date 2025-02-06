@@ -43,4 +43,4 @@ for algo in "${algos[@]}"; do
 done
 
 # Display instruction to temporarily change the congestion control algorithm
-echo -e "To temporarily change the congestion control algorithm run:\n${BLD}sudo /sbin/sysctl -w net.ipv4.tcp_congestion_control=bbr${RST}"
+echo -e "To temporarily change the congestion control algorithm run:\n${BLD}sudo sysctl -w net.ipv4.tcp_congestion_control=bbr${RST}"
