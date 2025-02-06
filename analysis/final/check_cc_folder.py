@@ -1053,6 +1053,10 @@ with open(output_file, "w") as f :
         formatted_string = f"{web:<40}{results[web]:<60}\n"
         f.write(formatted_string)
 print("Finished")
+print("Results for", filter_file)
+for web in results:
+    formatted_string = f"{web:<40}{results[web]:<60}"
+    print(formatted_string)
 exit()
 
 
