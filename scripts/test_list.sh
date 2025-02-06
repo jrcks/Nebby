@@ -1,71 +1,73 @@
 #!/bin/bash
 
 # Check if the required parameters are provided
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 <url_list> <max_num_urls>"
-    echo "max_num_urls: <= 0 for all urls in list, n for first n urls"
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    echo "Usage: $0 <url_list> [<max_num_urls>]"
+    echo "  <url_list>         : Path to the CSV file containing URLs"
+    echo "  <max_num_urls>     : Optional, number of URLs to process. "
+    echo "                         Use a positive integer for the first n entries."
+    echo "                         Omit for all URLs in the list."
     exit 1
 fi
 
-url_list=$1
-num_urls=$2
+url_list="$1"
+max_num_urls="$2"
 
 # Configuration Variables
 predelays=(0)
 postdelays=(50 100)
-linkspeeds=(200 1000)
-buffsizes=(1 2)
+bandwidths=(200 1000)
+bufsizes=(1 2)
 
-# Get the number of candidates from the CSV file
-num=$(wc -l <$url_list)
+# Get the number of URLs in the list
+total_urls=$(wc -l <"$url_list")
 
-if [[ $num_urls -gt 0 ]]
-then
-    num=$(( $num < $num_urls ? $num : $num_urls ))
-fi
+# Clamp the max_num_urls parameter and ensure num_urls is at least 1
+num_urls=${max_num_urls:-$total_urls}
+num_urls=$(((num_urls < 1) ? 1 : (total_urls < num_urls ? total_urls : num_urls)))
 
-
-echo "Num-Urls: $num"
+# Log the start time and number of URLs to process
+echo "Processing $num_urls URLs from $url_list"
 echo "Started at: $(date '+%d/%m/%Y %H:%M:%S')"
 SECONDS=0
 
-# Loop through each line number from 1 to the number of candidates
-for ((i = 1; i <= 0; i++)); do
-    # Adding 'p' to the line number for the sed command
-    line_number="${i}p"
+# Loop through the specified number of URLs
+for ((i = 1; i <= num_urls; i++)); do
+    # Extract site and URL from the CSV
+    site=$(sed -n "${i}p" "$url_list" | cut -d ';' -f 1)
+    url=$(sed -n "${i}p" "$url_list" | cut -d ';' -f 2)
 
-    # Extract site and URL from the candidates file
-    site=$(sed -n "${line_number}" $url_list | cut -d ';' -f 1)
-    url=$(sed -n "${line_number}" $url_list | cut -d ';' -f 2)
-
-    # Output the site and URL
+    # Output the current site and URL
     echo "==================="
     echo "Processing $i: $site"
     echo "URL: $url"
     echo "+++++++++++++++++++"
-    for pre in ${predelays[@]}; do
-        for post in ${postdelays[@]}; do
-            for link in ${linkspeeds[@]}; do
-                for size in ${buffsizes[@]}; do
-                    # Run the test with the extracted site and URL
-                    echo ./run_test.sh "$site" $pre  $post $link $size "$url"
-                    ./run_test.sh "$site" $pre  $post $link $size "$url"
-                    if [[ $? -ne 0 ]] 
-                    then
-                        echo "FAILED!"
+
+    # Loop through each combination of parameters
+    for pre in "${predelays[@]}"; do
+        for post in "${postdelays[@]}"; do
+            for bandwidth in "${bandwidths[@]}"; do
+                for buf in "${bufsizes[@]}"; do
+
+                    # Run the test for the current URL
+                    ./run_test.sh "$site" "$pre" "$post" "$bandwidth" "$buf" "$url"
+
+                    # Check for errors in test execution
+                    if [[ $? -ne 0 ]]; then
+                        echo "Test failed for $site at $url"
                         exit 1
                     fi
+
                     sleep 0.1
                     echo "-------------------"
                 done
             done
         done
     done
+
     echo "==================="
     sleep 0.1
 done
 
 duration=$SECONDS
-
 echo "Finished at: $(date '+%d/%m/%Y %H:%M:%S') in $((duration / 60)) minutes and $((duration % 60)) seconds"
-echo "DONE!"
