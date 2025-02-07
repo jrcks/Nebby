@@ -8,15 +8,15 @@ RST='\033[0m'
 
 # Display the currently active congestion control algorithm
 current_cca=$(sysctl -n net.ipv4.tcp_congestion_control)
-echo -e "Currently active congestion control algorithm: ${BLD}$current_cca${RST}"
+echo -e "Currently active congestion control algorithm:\n\t${BLD}$current_cca${RST}"
 
 # Display available congestion control algorithms
 available_cca=$(sysctl -n net.ipv4.tcp_available_congestion_control)
-echo -e "Available congestion control algorithms:\n${BLD}$available_cca${RST}"
+echo -e "Available congestion control algorithms:\n\t${BLD}$available_cca${RST}"
 
 # Display currently allowed congestion control algorithms
 allowed_cca=$(sysctl -n net.ipv4.tcp_allowed_congestion_control)
-echo -e "Allowed congestion control algorithms:\n${BLD}$allowed_cca${RST}"
+echo -e "Allowed congestion control algorithms:\n\t${BLD}$allowed_cca${RST}"
 
 # Get list of available congestion control algorithms
 kernel_version=$(uname -r)
@@ -34,7 +34,7 @@ fi
 IFS=',' read -r -a algos <<<"$module_cca"
 for cca in "${algos[@]}"; do
     cca=$(echo "$cca" | xargs) # Trim whitespace
-    echo -n "Loading congestion control algorithm: ${BLD}$cca${RST}... "
+    echo -ne "Loading congestion control algorithm: ${BLD}$cca${RST}... "
     if sudo modprobe "tcp_$cca"; then
         # Add the loaded algorithm to the allowed list by loading it
         sudo sysctl -w net.ipv4.tcp_congestion_control="$cca" 1>/dev/null
@@ -48,4 +48,4 @@ done
 sudo sysctl -w net.ipv4.tcp_congestion_control="$current_cca" 1>/dev/null
 
 # Display instruction to temporarily change the congestion control algorithm
-echo -e "To temporarily change the congestion control algorithm run:\n${BLD}sudo sysctl -w net.ipv4.tcp_congestion_control=bbr${RST}"
+echo -e "To temporarily change the congestion control algorithm run:\n\t${BLD}sudo sysctl -w net.ipv4.tcp_congestion_control=bbr${RST}"
