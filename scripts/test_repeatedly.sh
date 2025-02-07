@@ -12,8 +12,16 @@ link="192.168.178.95"
 
 iterations=25
 
+# From the Paper: 2 Network Profiles are enough for detection all 13 "known" CCAs
+# (and are used for the measurements in the paper)
+#   both with bandwidth 200
+#   both with bottleneck buffer size 2
+#   one with 'one-way' delay 50ms and the other with 100ms
+#       100ms required for CCAs with similar graphs, like (New) Reno, Illinois and HSTCP
+#       It is not stated what a 50ms or 100ms 'one-way' delay means exactly, given that we can configure predelay and postdelay separately
+
 predelays=(0)
-postdelays=(50)
+postdelays=(50 100)
 bandwidths=(200)
 buffersizes=(2)
 
