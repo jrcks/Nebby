@@ -43,8 +43,7 @@ echo "Processing $num_urls URLs from $url_list"
 # Count how many tests will be run
 total_tests=$((iterations * num_urls * ${#predelays[@]} * ${#postdelays[@]} * ${#bandwidths[@]} * ${#buffersizes[@]}))
 echo "Total tests to run: $total_tests"
-# Initialize a counter for processed URLs
-counter=0
+test_counter=0
 
 echo "Started at: $(date '+%d/%m/%Y %H:%M:%S')"
 SECONDS=0
@@ -54,6 +53,8 @@ for i in $(seq 1 $iterations); do
     echo "==========================="
     echo "Round $i"
     echo "==========================="
+    # Initialize a counter for processed URLs
+    counter=0
     # Read the URL list using a while loop and process only the first num_urls
     while IFS= read -r line && [ "$counter" -lt "$num_urls" ]; do
         # Increment the URL counter
@@ -71,7 +72,14 @@ for i in $(seq 1 $iterations); do
         if [ $? -ne 0 ]; then
             base_link="${parts[0]}//${parts[2]}"
             echo -e "${BLD_YLW}Link not accessible. Going to base link: ${base_link}${RST}"
+            echo "Link not accessible. Going to base link: ${base_link}" > log.txt
             link="$base_link"
+            wget --tries=1 --timeout=15 -O /dev/null -q "$link"
+            if [ $? -ne 0 ]; then
+                echo -e "${BLD_YLW}Base-Link not accessible. Skipping: ${base_link}${RST}"
+                echo "Base-Link not accessible. Skipping: ${base_link}" > log.txt
+                continue
+            fi
         fi
 
         # Output the current site and URL with counter
@@ -83,6 +91,7 @@ for i in $(seq 1 $iterations); do
             for post in "${postdelays[@]}"; do
                 for bandwidth in "${bandwidths[@]}"; do
                     for buff in "${buffersizes[@]}"; do
+                        ((test_counter++))
                         # Run the test with the specified parameters
                         ./run_test.sh "$site" "$pre" "$post" "$bandwidth" "$buff" "$link"
 
@@ -90,14 +99,14 @@ for i in $(seq 1 $iterations); do
                         if [[ $? -ne 0 ]]; then
                             echo -e "${BLD_RED}Test failed for ${site} at ${link}${RST}"
                             echo "Test failed for ${site}${i}-${pre}-${post}-${bandwidth}-${buff}-${link}" > log.txt
-                            #exit 1
+                            continue
                         fi
 
                         sleep 0.1
 
                         mv "$output_dir/$site-$pre-$post-$bandwidth-$buff-tcp.csv" "$output_dir/$cc$i-$pre-$post-$bandwidth-$buff-tcp.csv"
                         
-                        echo "$counter out of $total_tests measurements completed."
+                        echo "$test_counter out of $total_tests measurements completed."
                         echo "________________________________________"
                     done
                 done
