@@ -18,7 +18,7 @@ predelays=(0)
 postdelays=(50 100)
 bandwidths=(200)
 buffersizes=(2)
-iterations=1 # TODO
+iterations=50 # TODO
 
 # Formatting variables
 INV="\033[7m"
@@ -49,55 +49,67 @@ counter=0
 echo "Started at: $(date '+%d/%m/%Y %H:%M:%S')"
 SECONDS=0
 
-# Read the URL list using a while loop and process only the first num_urls
-while IFS= read -r line && [ "$counter" -lt "$num_urls" ]; do
-    # Increment the URL counter
-    ((counter++))
+for i in $(seq 1 $iterations); do
 
-    # Extract site and URL from the line
-    site=$(echo "$line" | cut -d ';' -f 1)
-    link=$(echo "$line" | cut -d ';' -f 2)
+    echo "==========================="
+    echo "Round $i"
+    echo "==========================="
+    # Read the URL list using a while loop and process only the first num_urls
+    while IFS= read -r line && [ "$counter" -lt "$num_urls" ]; do
+        # Increment the URL counter
+        ((counter++))
 
-    # Extract the base link
-    IFS="/" read -ra parts <<<"$link"
+        # Extract site and URL from the line
+        site=$(echo "$line" | cut -d ';' -f 1)
+        link=$(echo "$line" | cut -d ';' -f 2)
 
-    # Check if the link is accessible
-    wget --tries=1 --timeout=15 -O /dev/null -q "$link"
-    if [ $? -ne 0 ]; then
-        base_link="${parts[0]}//${parts[2]}"
-        echo -e "${BLD_YLW}Link not accessible. Going to base link: ${base_link}${RST}"
-        link="$base_link"
-    fi
+        # Extract the base link
+        IFS="/" read -ra parts <<<"$link"
 
-    # Output the current site and URL with counter
-    echo -e "${INV}                                        "
-    echo -e "[${counter} / ${num_urls}] Processing: ${site}\nURL: ${link}"
-    echo -e "                                        ${RST_INV}"
+        # Check if the link is accessible
+        wget --tries=1 --timeout=15 -O /dev/null -q "$link"
+        if [ $? -ne 0 ]; then
+            base_link="${parts[0]}//${parts[2]}"
+            echo -e "${BLD_YLW}Link not accessible. Going to base link: ${base_link}${RST}"
+            link="$base_link"
+        fi
 
-    for pre in "${predelays[@]}"; do
-        for post in "${postdelays[@]}"; do
-            for bandwidth in "${bandwidths[@]}"; do
-                for buff in "${buffersizes[@]}"; do
-                    # Run the test with the specified parameters
-                    ./run_test.sh "$site" "$pre" "$post" "$bandwidth" "$buff" "$link"
+        # Output the current site and URL with counter
+        echo -e "${INV}                                        "
+        echo -e "[${counter} / ${num_urls}] Processing: ${site}\nURL: ${link}"
+        echo -e "                                        ${RST_INV}"
 
-                    # Check for errors in test execution
-                    if [[ $? -ne 0 ]]; then
-                        echo -e "${BLD_RED}Test failed for ${site} at ${link}${RST}"
-                        exit 1
-                    fi
+        for pre in "${predelays[@]}"; do
+            for post in "${postdelays[@]}"; do
+                for bandwidth in "${bandwidths[@]}"; do
+                    for buff in "${buffersizes[@]}"; do
+                        # Run the test with the specified parameters
+                        ./run_test.sh "$site" "$pre" "$post" "$bandwidth" "$buff" "$link"
 
-                    sleep 0.1
-                    echo "________________________________________"
+                        # Check for errors in test execution
+                        if [[ $? -ne 0 ]]; then
+                            echo -e "${BLD_RED}Test failed for ${site} at ${link}${RST}"
+                            echo "Test failed for ${site}${i}-${pre}-${post}-${bandwidth}-${buff}-${link}" > log.txt
+                            #exit 1
+                        fi
+
+                        sleep 0.1
+
+                        mv "$output_dir/$cc-$pre-$post-$bandwidth-$buff-tcp.csv" "$output_dir/$cc$i-$pre-$post-$bandwidth-$buff-tcp.csv"
+                        
+                        echo "$counter out of $total_tests measurements completed."
+                        echo "________________________________________"
+                    done
                 done
             done
         done
-    done
 
-    echo -e "\n"
-    sleep 0.1
+        echo -e "\n"
+        sleep 1
 
-done <"$url_list"
+    done <"$url_list"
+    sleep 10
+done
 
 duration=$SECONDS
 echo -e "${BLD_GRN}Finished at $(date '+%d/%m/%Y %H:%M:%S') in $((duration / 60)) minutes and $((duration % 60)) seconds\033[0m"
