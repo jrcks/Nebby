@@ -16,8 +16,9 @@ max_num_urls="$2"
 # Configuration Variables
 predelays=(0)
 postdelays=(50 100)
-bandwidths=(200 1000)
-buffersizes=(1 2)
+bandwidths=(200)
+buffersizes=(2)
+iterations=1 # TODO
 
 # Formatting variables
 INV="\033[7m"
@@ -38,11 +39,15 @@ num_urls=$(((num_urls < 1) ? total_urls : (total_urls < num_urls ? total_urls : 
 
 # Log the start time and number of URLs to process
 echo "Processing $num_urls URLs from $url_list"
-echo "Started at: $(date '+%d/%m/%Y %H:%M:%S')"
-SECONDS=0
 
+# Count how many tests will be run
+total_tests=$((iterations * num_urls * ${#predelays[@]} * ${#postdelays[@]} * ${#bandwidths[@]} * ${#buffersizes[@]}))
+echo "Total tests to run: $total_tests"
 # Initialize a counter for processed URLs
 counter=0
+
+echo "Started at: $(date '+%d/%m/%Y %H:%M:%S')"
+SECONDS=0
 
 # Read the URL list using a while loop and process only the first num_urls
 while IFS= read -r line && [ "$counter" -lt "$num_urls" ]; do
