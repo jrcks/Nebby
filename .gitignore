@@ -2,9 +2,21 @@
 logs/
 measurements/*
 measurements-*/*
+remote/
+plots/
+data/
+bw.trace
 
 # Ignore VS Code files
 .vscode
+
+# Ignore analysis results
+*.png
+*.res
+a_results
+
+# Ignore measurements temp files
+scripts/index
 
 # Ignore compiled client/server and sender/receiver and the stats log file in custom client
 custom_clients/client
