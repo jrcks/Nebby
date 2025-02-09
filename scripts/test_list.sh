@@ -109,7 +109,7 @@ for i in $(seq 1 $iterations); do
 
                         sleep 0.1
 
-                        mv "$output_dir/$site-$pre-$post-$bandwidth-$buff-tcp.csv" "$output_dir/$cc$i-$pre-$post-$bandwidth-$buff-tcp.csv"
+                        mv "$output_dir/$site-$pre-$post-$bandwidth-$buff-tcp.csv" "$output_dir/$site$i-$pre-$post-$bandwidth-$buff-tcp.csv"
                         
                         echo "$test_counter out of $total_tests measurements completed."
                         echo "________________________________________"
