@@ -18,7 +18,7 @@ predelays=(0)
 postdelays=(50 100)
 bandwidths=(200)
 buffersizes=(2)
-iterations=50 # TODO
+iterations=25 # TODO
 
 # Formatting variables
 INV="\033[7m"
@@ -78,6 +78,9 @@ for i in $(seq 1 $iterations); do
             if [ $? -ne 0 ]; then
                 echo -e "${BLD_YLW}Base-Link not accessible. Skipping: ${base_link}${RST}"
                 echo "Base-Link not accessible. Skipping: ${base_link}" > log.txt
+
+                test_counter=$((test_counter + ${#predelays[@]} * ${#postdelays[@]} * ${#bandwidths[@]} * ${#buffersizes[@]}))
+
                 continue
             fi
         fi
