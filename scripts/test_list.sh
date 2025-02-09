@@ -30,9 +30,11 @@ RST="\033[0m"
 # Get the number of URLs in the list
 total_urls=$(wc -l <"$url_list")
 
-# Clamp the max_num_urls parameter and ensure num_urls is at least 1
+# Clamp the max_num_urls parameter
 num_urls=${max_num_urls:-$total_urls}
-num_urls=$(((num_urls < 1) ? 1 : (total_urls < num_urls ? total_urls : num_urls)))
+
+# Set num_urls to total_urls, if < 1 or > total_urls
+num_urls=$(((num_urls < 1) ? total_urls : (total_urls < num_urls ? total_urls : num_urls)))
 
 # Log the start time and number of URLs to process
 echo "Processing $num_urls URLs from $url_list"
