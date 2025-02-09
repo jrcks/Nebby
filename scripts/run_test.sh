@@ -60,7 +60,7 @@ echo "[run_test.sh] Congestion Control Algorithm: $cca"
 echo "[run_test.sh] Predelay: $predelay ms"
 echo "[run_test.sh] Postdelay: $postdelay ms"
 echo "[run_test.sh] Bandwidth: $bandwidth kbps"
-echo "[run_test.sh] Buffer Size (1 BDP): $bdp bytes"
+echo "[run_test.sh] Buffer Size ($buffer_size BDP): $bdp bytes"
 echo "[run_test.sh] Active Queue Management: $aqm"
 
 # +-------------------------------------+
