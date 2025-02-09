@@ -20,6 +20,8 @@ bandwidths=(200)
 buffersizes=(2)
 iterations=25 # TODO
 
+output_dir="../measurements"
+
 # Formatting variables
 INV="\033[7m"
 RST_INV="\033[27m"
