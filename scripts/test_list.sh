@@ -84,7 +84,7 @@ for i in $(seq 1 $iterations); do
                 for bandwidth in "${bandwidths[@]}"; do
                     for buff in "${buffersizes[@]}"; do
                         # Run the test with the specified parameters
-                        #./run_test.sh "$site" "$pre" "$post" "$bandwidth" "$buff" "$link"
+                        ./run_test.sh "$site" "$pre" "$post" "$bandwidth" "$buff" "$link"
 
                         # Check for errors in test execution
                         if [[ $? -ne 0 ]]; then
