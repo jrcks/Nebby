@@ -84,7 +84,7 @@ for i in $(seq 1 $iterations); do
                 for bandwidth in "${bandwidths[@]}"; do
                     for buff in "${buffersizes[@]}"; do
                         # Run the test with the specified parameters
-                        ./run_test.sh "$site" "$pre" "$post" "$bandwidth" "$buff" "$link"
+                        #./run_test.sh "$site" "$pre" "$post" "$bandwidth" "$buff" "$link"
 
                         # Check for errors in test execution
                         if [[ $? -ne 0 ]]; then
@@ -95,7 +95,7 @@ for i in $(seq 1 $iterations); do
 
                         sleep 0.1
 
-                        mv "$output_dir/$cc-$pre-$post-$bandwidth-$buff-tcp.csv" "$output_dir/$cc$i-$pre-$post-$bandwidth-$buff-tcp.csv"
+                        mv "$output_dir/$site-$pre-$post-$bandwidth-$buff-tcp.csv" "$output_dir/$cc$i-$pre-$post-$bandwidth-$buff-tcp.csv"
                         
                         echo "$counter out of $total_tests measurements completed."
                         echo "________________________________________"
