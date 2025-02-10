@@ -64,6 +64,9 @@ fi
 # sudo ./sender "$url" "$cca" "./websites/index.html"
 # cd - 1>/dev/null
 
+# === quic client === #
+#python3.12 ../quic_clients/cloudflare_aioquic.py --output-dir "$output_dir" "$url"
+
 # Wait for any background processes to complete
 sleep 1
 echo "[client.sh] Finished running client"
