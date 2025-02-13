@@ -82,7 +82,7 @@ def plot_d(ax, time, data, c, l, alpha=1):
 
 def plot_one_bt(f, p,t=1):
 #     print(f)
-    file_name = f.split("/")[-1]
+    file_name = f.split(os.sep)[-1]
     fs = file_name.split("-")
 
     tag = fs[0]
@@ -366,7 +366,7 @@ def process_flows(cc, dir,p="y"):
     return flows
 
 def split_path(f):
-    path = f.split("/")
+    path = f.split(os.sep)
     file_name = path[-1][:-8]
     folder_path = "/".join(path[:-1])
     folder_path = folder_path + "/"
@@ -495,7 +495,7 @@ def getProbes(time, data, rtt, bdp, bw=200):
 def checkBBR(files,p="n"):
     classi = []
     for f in files:
-        file_name = f.split("/")[-1]
+        file_name = f.split(os.sep)[-1]
         para = file_name.split("-")
         rtt = int(para[2])*2
         bw = int(para[3])
@@ -611,17 +611,17 @@ yes,no,maybe,nan = getDivision(classi,files)
 print("BBR: ",len(yes)+len(maybe),"Not BBR: ",len(no),"BIF ERROR: ",len(nan))
 
 for f in yes:
-    file_name = f.split("/")[-1]
+    file_name = f.split(os.sep)[-1]
     web_name = file_name.split("-")[0]
     results[web_name] = "BBR"
 
 for f in maybe:
-    file_name = f.split("/")[-1]
+    file_name = f.split(os.sep)[-1]
     web_name = file_name.split("-")[0]
     results[web_name] = "BBR(Maybe)"
 
 for f in nan:
-    file_name = f.split("/")[-1]
+    file_name = f.split(os.sep)[-1]
     web_name = file_name.split("-")[0]
     results[web_name] = "BIF ERROR : " + nan[f]
 
