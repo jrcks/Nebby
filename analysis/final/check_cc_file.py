@@ -82,7 +82,7 @@ def plot_d(ax, time, data, c, l, alpha=1):
 
 def plot_one_bt(f, p,t=1):
 #     print(f)
-    file_name = f.split("/")[-1]
+    file_name = f.split(os.sep)[-1]
     fs = file_name.split("-")
 
     pre = int(fs[1])
@@ -374,10 +374,10 @@ def process_flows(cc, dir,p="y"):
     return flows
 
 def split_path(f):
-    path = f.split("/")
+    path = f.split(os.sep)
     file_name = path[-1][:-8]
-    folder_path = "/".join(path[:-1])
-    folder_path = folder_path + "/"
+    folder_path = os.sep.join(path[:-1])
+    folder_path = folder_path + os.sep
     algo_cc = file_name
     return algo_cc, folder_path
 
@@ -503,7 +503,7 @@ def getProbes(time, data, rtt, bdp, bw=200):
 def checkBBR(files,p="n"):
     classi = []
     for f in files:
-        file_name = f.split("/")[-1]
+        file_name = f.split(os.sep)[-1]
         para = file_name.split("-")
         if(len(para) < 5):
             classi.append("NC Not Enough Parameters in File Name\n  Required : [algo]-[pre]-[post]-[bw]-[bf]-tcp.csv\n  Found : "+file_name)
