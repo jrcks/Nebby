@@ -1,14 +1,21 @@
 #!/bin/bash
 
-# Configuration Variables
-#variants="bic cdg dctcp highspeed htcp hybla illinois lp nv scalable vegas veno westwood yeah cubic bbr reno"
+# Check if the required parameters are provided
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <URL>"
+    exit 1
+fi
+
+# Assign input parameters to meaningful variable names
+url="$1"
+
+### Configuration Variables ###
 
 # NOTE: The following "available" CCAs are not detectable by Nebby:
 #      cdg hybla illinois nv vegas
 
-variants="bic cubic bbr reno highspeed htcp westwood lp scalable veno dctcp yeah vegas"
-
-link="192.168.178.95"
+#variants=(bic cdg dctcp highspeed htcp hybla illinois lp nv scalable vegas veno westwood yeah cubic bbr reno)
+variants=(bic cubic bbr reno highspeed htcp westwood lp scalable veno dctcp yeah vegas)
 
 iterations=25
 
@@ -27,7 +34,26 @@ buffersizes=(2)
 
 output_dir="../measurements"
 
-for cc in $variants; do
+### End of Configuration Variables ###
+
+# Formatting variables
+INV="\033[7m"
+RST_INV="\033[27m"
+BLD_RED="\033[1;31m"
+BLD_GRN="\033[1;32m"
+BLD_YLW="\033[1;33m"
+RST="\033[0m"
+
+# Count how many tests will be run
+total_tests=$((iterations * ${#variants[@]} * ${#predelays[@]} * ${#postdelays[@]} * ${#bandwidths[@]} * ${#buffersizes[@]}))
+echo "Total tests to run: $total_tests"
+counter=0
+
+# Log the start time
+echo "Started at: $(date '+%d/%m/%Y %H:%M:%S')"
+SECONDS=0
+
+for cc in "${variants[@]}"; do
 
     echo "==========================="
     echo "Testing congestion control: $cc"
@@ -42,27 +68,28 @@ for cc in $variants; do
                 for buff in "${buffersizes[@]}"; do
 
                     echo "==========================="
-                    echo "$pre-$post-$bandwidth-$buff"
+                    echo "$cc $pre-$post-$bandwidth-$buff"
                     echo "==========================="
 
                     for i in $(seq 1 $iterations); do
+                        ((counter++))
 
-                        echo "--- Iteration $i ---"
+                        echo "--- $cc $pre-$post-$bandwidth-$buff #$i ---"
 
                         # Run the test with the specified parameters
-                        ./run_test.sh "$cc" "$pre" "$post" "$bandwidth" "$buff" "$link"
+                        ./run_test.sh "$cc" "$pre" "$post" "$bandwidth" "$buff" "$url"
 
                         # Check for errors in test execution
                         if [[ $? -ne 0 ]]; then
-                            echo "Test failed for $site at $link"
+                            echo -e "${BLD_RED}Test failed for ${cc} at ${url}${RST}"
                             exit 1
                         fi
 
-                        sleep 1
+                        #sleep 1
 
                         mv "$output_dir/$cc-$pre-$post-$bandwidth-$buff-tcp.csv" "$output_dir/$cc$i-$pre-$post-$bandwidth-$buff-tcp.csv"
                         
-                        echo "Iteration $i completed."
+                        echo "$counter out of $total_tests measurements completed."
 
                         echo "-------------------"
                     done
@@ -72,3 +99,6 @@ for cc in $variants; do
     done
     sleep 2
 done
+
+duration=$SECONDS
+echo -e "${BLD_GRN}Finished at $(date '+%d/%m/%Y %H:%M:%S') in $((duration / 60)) minutes and $((duration % 60)) seconds\033[0m"
