@@ -588,7 +588,7 @@ def getDivision(classi, test_files):
 import os 
 
 if (len(sys.argv) < 4):
-    print("Usage: python3 checkBBR.py <folder> <filter_file> <print_plots y/n> [output_file]")
+    print("Usage: python3 check_cc_folder.py <folder> <filter_file> <print_plots y/n> [output_file]")
     exit()
 
 results = {}
