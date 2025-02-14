@@ -1004,20 +1004,21 @@ count_to_mp: Dict[int, Dict[int, str]] = pickle.load(open(script_dir + "/count_t
 #    3 cubic
 #    4 cubicQ
 
-cc_degree = {
- 'bic': 1,
- 'dctcp': 2,
- 'highspeed': 2,
- 'htcp': 3,
- 'lp': 2,
- 'scalable': 1,
- 'veno': 3,
- 'westwood': 2,
- 'yeah': 1,
- 'cubic': 3,
- 'reno': 2,
- 'cubicQ':3
-}
+
+#cc_degree = {
+# 'bic': 1,
+# 'dctcp': 2,
+# 'highspeed': 2,
+# 'htcp': 3,
+# 'lp': 2,
+# 'scalable': 1,
+# 'veno': 3,
+# 'westwood': 2,
+# 'yeah': 1,
+# 'cubic': 3,
+# 'reno': 2,
+# 'cubicQ':3
+#}
 degrees = [1,2,3]
 
 web_data = {}
