@@ -1,3 +1,4 @@
+# Locations in file name <algo0>-<pre1>-<post2>-<bw3>-<bf4>
 pre_i=1
 post_i=2
 bw_i=3
@@ -5,8 +6,9 @@ bf_i=4
 
 import sys
 import csv
-import matplotlib.pyplot as plt
 import math
+
+from typing import Dict
 
 import matplotlib.pyplot as plt
 from scipy.fft import rfft, rfftfreq
@@ -603,6 +605,8 @@ if print_plots == "y":
     if not os.path.exists("plots"):
         os.makedirs("plots")
 
+print("Files found: ",len(files))
+
 print("...checking for BBR")
 classi = checkBBR(files, p=print_plots)
 
@@ -975,17 +979,17 @@ import pickle
 # Assumes that these files are located in the same directory as the script
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-scaled_vals: dict = pickle.load(open(script_dir + "/scaled_vals.txt","rb"))
+scaled_vals: Dict[int, Dict[str, np.ndarray]] = pickle.load(open(script_dir + "/scaled_vals.txt","rb"))
 #Degree 1: bic, scalable, yeah, scaler
 #Degree 2: westwood, scaler, combined
 #Degree 3: htcp, veno, cubic, cubicQ, scaler
 
-classifiers: dict = pickle.load(open(script_dir + "/classifiers.txt","rb"))
+classifiers: Dict[int, GaussianNB] = pickle.load(open(script_dir + "/classifiers.txt","rb"))
 # Degree 1: 1D GaussianNB
 # Degree 2: 2D GaussianNB
 # Degree 3: 3D GaussianNB
 
-count_to_mp: dict = pickle.load(open(script_dir + "/count_to_mp.txt","rb"))
+count_to_mp: Dict[int, Dict[int, str]] = pickle.load(open(script_dir + "/count_to_mp.txt","rb"))
 # Degree 1
 #    1 bic
 #    2 scalable
