@@ -199,7 +199,18 @@ class pkt:
 
     def get(self, field):
         return self.contents[fields.index(field)]
-        
+
+# Maybe not correct for some legacy data, confirm manually if this fails
+def check_header(row):
+    csvfields = ["_ws.col.cls_time", "frame.time_relative", "tcp.time_relative", "frame.number", "frame.len", "ip.src", "tcp.srcport", "ip.dst", "tcp.dstport", "tcp.len", "tcp.seq", "tcp.ack"]
+    
+    if (len(row) != len(csvfields)):
+        return False
+    
+    for i in range(len(csvfields)):
+        if row[i] != (csvfields[i]):
+            return False
+    return True
 
 def process_flows(cc, dir,p="y"):
     name = dir+cc+"-tcp.csv"
@@ -234,6 +245,9 @@ def process_flows(cc, dir,p="y"):
             validPkt=False
             if line_count==0:
                 # reject the header
+                if (not check_header(row)):
+                    print("CSV file does not have the correct header")
+                    return {}
                 line_count+=1
                 continue
             if data_sent == 0 : 
