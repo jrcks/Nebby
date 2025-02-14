@@ -8,7 +8,7 @@ import sys
 import csv
 import math
 
-from typing import Dict
+from typing import Dict, List
 
 import matplotlib.pyplot as plt
 
@@ -1075,8 +1075,8 @@ for degree in degrees:
 for degree in degrees:
     if degree not in usable_web:
         continue
-    data = []
-    labels = []
+    data: List[np.ndarray] = []
+    labels: List[str] = []
     for i in usable_web[degree]:
         data.append(scaled_web_data[degree]['data'][i])
         labels.append(scaled_web_data[degree]['labels'][i])
