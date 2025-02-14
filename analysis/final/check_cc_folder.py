@@ -11,15 +11,13 @@ import math
 from typing import Dict
 
 import matplotlib.pyplot as plt
-from scipy.fft import rfft, rfftfreq
-from scipy.fft import irfft
+
 import numpy as np
-import statistics
-from statistics import mean, pstdev
 import pandas as pd
 
+from scipy.fft import rfft, rfftfreq
+from scipy.fft import irfft
 from sklearn.naive_bayes import GaussianNB
-
 
 yellow = '\033[93m'
 green = '\033[92m'
